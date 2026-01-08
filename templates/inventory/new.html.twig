@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Inventory - Inventory Manager{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <div class="mb-5">
+                    <h2 class="mb-2">
+                        <i class="fas fa-plus-circle text-primary"></i> Create New Inventory
+                    </h2>
+                    <p class="text-muted">Fill in the details below to create a new inventory item</p>
+                </div>
+                
+                <form method="post" novalidate class="needs-validation">
+                    <!-- Name Field -->
+                    <div class="mb-4">
+                        {{ form_label(form.name, 'Inventory Name', {'class': 'form-label fw-bold'}) }}
+                        {{ form_widget(form.name, {
+                            'attr': {
+                                'class': 'form-control form-control-lg',
+                                'placeholder': 'e.g., Office Supplies'
+                            }
+                        }) }}
+                        {% if form.name.vars.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.name.vars.errors %}
+                                    <i class="fas fa-exclamation-circle"></i> {{ error.message }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Description Field -->
+                    <div class="mb-4">
+                        {{ form_label(form.description, 'Description', {'class': 'form-label fw-bold'}) }}
+                        {{ form_widget(form.description, {
+                            'attr': {
+                                'class': 'form-control',
+                                'rows': '4',
+                                'placeholder': 'Describe this inventory...'
+                            }
+                        }) }}
+                        <small class="form-text text-muted">Optional: Add details about this inventory</small>
+                    </div>
+                    
+                    <!-- Access Level Field -->
+                    <div class="mb-4">
+                        {{ form_label(form.accessLevel, 'Access Level', {'class': 'form-label fw-bold'}) }}
+                        {{ form_widget(form.accessLevel, {
+                            'attr': {
+                                'class': 'form-select form-select-lg'
+                            }
+                        }) }}
+                        <small class="form-text text-muted">Who can access this inventory?</small>
+                    </div>
+                    
+                    <!-- Custom Fields -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Custom Fields (JSON)</label>
+                        <div class="bg-light p-3 rounded mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                Enter custom fields as JSON array or leave empty
+                            </small>
+                        </div>
+                        {{ form_widget(form.customFields, {
+                            'attr': {
+                                'class': 'form-control font-monospace',
+                                'rows': '4',
+                                'placeholder': '{"field1": "value1", "field2": "value2"}'
+                            }
+                        }) }}
+                    </div>
+                    
+                    <hr class="my-5">
+                    
+                    <!-- Submit & Cancel -->
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ path('inventory_index') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save"></i> Create Inventory
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

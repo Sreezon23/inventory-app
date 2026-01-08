@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Account - Inventory Manager{% endblock %}
+
+{% block body %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <i class="fas fa-user-plus text-primary" style="font-size: 3rem;"></i>
+                    <h2 class="card-title mt-3">Create Account</h2>
+                    <p class="text-muted">Join us to start managing your inventory</p>
+                </div>
+                
+                <form method="post" novalidate>
+                    <!-- Email Field -->
+                    <div class="mb-3">
+                        {{ form_label(registrationForm.email, 'Email Address', {'class': 'form-label fw-bold'}) }}
+                        {{ form_widget(registrationForm.email, {
+                            'attr': {
+                                'class': 'form-control form-control-lg',
+                                'placeholder': 'your@email.com'
+                            }
+                        }) }}
+                        {% if registrationForm.email.vars.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in registrationForm.email.vars.errors %}
+                                    {{ error.message }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Password Field -->
+                    <div class="mb-4">
+                        {{ form_label(registrationForm.plainPassword, 'Password', {'class': 'form-label fw-bold'}) }}
+                        {{ form_widget(registrationForm.plainPassword, {
+                            'attr': {
+                                'class': 'form-control form-control-lg',
+                                'placeholder': 'Enter a strong password'
+                            }
+                        }) }}
+                        {% if registrationForm.plainPassword.vars.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in registrationForm.plainPassword.vars.errors %}
+                                    {{ error.message }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="form-text text-muted">Min 6 characters</small>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">
+                        <i class="fas fa-user-check"></i> Create Account
+                    </button>
+                </form>
+                
+                <hr class="my-4">
+                
+                <!-- Login Link -->
+                <p class="text-center mb-0">
+                    Already have an account? 
+                    <a href="{{ path('app_login') }}" class="fw-bold text-decoration-none">Login here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

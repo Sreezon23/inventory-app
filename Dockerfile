@@ -16,16 +16,15 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     libpq-dev \
     libzip-dev \
-    pkg-config
-
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+    pkg-config \
+    libwebp-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Configure and install PHP extensions
 RUN docker-php-ext-configure gd \
-    --with-freetype \
-    --with-jpeg \
-    --with-webp
+    --with-freetype=/usr/include \
+    --with-jpeg=/usr/include \
+    --with-webp=/usr/include
 
 RUN docker-php-ext-install -j$(nproc) \
     pdo \
@@ -38,7 +37,7 @@ RUN docker-php-ext-install -j$(nproc) \
     gd \
     zip
 
-# Composer
+# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
@@ -48,10 +47,10 @@ COPY . .
 RUN composer install --optimize-autoloader --no-dev --no-scripts
 RUN composer dump-autoload --optimize
 
-# Symfony setup
-RUN mkdir -p var/cache var/log var/sessions
-RUN chown -R www-data:www-data var/ public/
-RUN chmod -R 755 var/
+# Symfony directories
+RUN mkdir -p var/cache var/log var/sessions \
+    && chown -R www-data:www-data var/ public/ \
+    && chmod -R 755 var/
 
 # Clear Symfony cache
 RUN php bin/console cache:clear --env=prod --no-debug --no-warmup

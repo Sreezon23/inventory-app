@@ -38,4 +38,4 @@ COPY . .
 COPY --from=assets_builder /app/public/build ./public/build
 
 RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
-RUN chown -R www-data:www-data var/
+RUN mkdir -p var && chown -R www-data:www-data var

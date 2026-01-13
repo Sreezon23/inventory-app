@@ -1,0 +1,126 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\Inventory;
+use App\Form\InventoryType;
+use App\Repository\InventoryRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route; // <--- CHANGED THIS
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[Route('/inventory')]
+class InventoryController extends AbstractController
+{
+    #[Route('/', name: 'inventory_index', methods: ['GET'])]
+    public function index(InventoryRepository $inventoryRepository): Response
+    {
+        $inventories = $inventoryRepository->findVisibleForUser($this->getUser());
+
+        return $this->render('inventory/index.html.twig', [
+            'inventories' => $inventories,
+        ]);
+    }
+
+    #[Route('/new', name: 'inventory_new', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function new(Request $request, EntityManagerInterface $em): Response
+    {
+        $inventory = new Inventory();
+        $inventory->setCreator($this->getUser());
+
+        $form = $this->createForm(InventoryType::class, $inventory);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->persist($inventory);
+            $em->flush();
+
+            $this->addFlash('success', 'Inventory created successfully!');
+
+            return $this->redirectToRoute('inventory_show', ['id' => $inventory->getId()]);
+        }
+
+        return $this->render('inventory/new.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/{id}', name: 'inventory_show', methods: ['GET'])]
+    public function show(Inventory $inventory): Response
+    {
+        // Check access
+        $this->checkInventoryAccess($inventory, 'read');
+
+        return $this->render('inventory/show.html.twig', [
+            'inventory' => $inventory,
+        ]);
+    }
+
+    #[Route('/{id}/edit', name: 'inventory_edit', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function edit(Request $request, Inventory $inventory, EntityManagerInterface $em): Response
+    {
+        // Only creator can edit
+        if ($inventory->getCreator()->getId() !== $this->getUser()->getId()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $form = $this->createForm(InventoryType::class, $inventory);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->flush();
+            $this->addFlash('success', 'Inventory updated!');
+
+            return $this->redirectToRoute('inventory_show', ['id' => $inventory->getId()]);
+        }
+
+        return $this->render('inventory/edit.html.twig', [
+            'form' => $form->createView(),
+            'inventory' => $inventory,
+        ]);
+    }
+
+    #[Route('/{id}', name: 'inventory_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function delete(Request $request, Inventory $inventory, EntityManagerInterface $em): Response
+    {
+        if ($inventory->getCreator()->getId() !== $this->getUser()->getId()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if ($this->isCsrfTokenValid('delete' . $inventory->getId(), $request->request->get('_token'))) {
+            $em->remove($inventory);
+            $em->flush();
+            $this->addFlash('success', 'Inventory deleted!');
+        }
+
+        return $this->redirectToRoute('inventory_index');
+    }
+
+    private function checkInventoryAccess(Inventory $inventory, string $type = 'read'): void
+    {
+        $user = $this->getUser();
+
+        // Public or creator
+        if ($inventory->isPublic() || $inventory->getCreator()->getId() === $user?->getId()) {
+            return;
+        }
+
+        // Has access
+        foreach ($inventory->getAccessList() as $access) {
+            if ($access->getUser()->getId() === $user?->getId()) {
+                if ($type === 'write' && !$access->isCanWrite()) {
+                    throw $this->createAccessDeniedException();
+                }
+                return;
+            }
+        }
+
+        throw $this->createAccessDeniedException();
+    }
+}

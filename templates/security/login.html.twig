@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="card-title mb-4">Login</h1>
+
+                    {% if error %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ error.messageKey|trans(error.messageData, 'security') }}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" action="{{ path('app_login') }}">
+                        {# 1. CSRF Token for security #}
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                        <div class="mb-3">
+                            <label for="inputEmail" class="form-label">Email</label>
+                            {# 2. Fixed name="_username" #}
+                            <input type="email" name="_username" id="inputEmail" class="form-control" value="{{ last_username }}" required autofocus>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="inputPassword" class="form-label">Password</label>
+                            {# 3. Fixed name="_password" #}
+                            <input type="password" name="_password" id="inputPassword" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" name="_remember_me" id="remember_me" class="form-check-input">
+                            <label class="form-check-label" for="remember_me">Remember me</label>
+                        </div>
+
+                        <button class="btn btn-primary w-100" type="submit">Sign in</button>
+                    </form>
+
+                    <p class="mt-3 text-center">
+                        Don't have an account? <a href="{{ path('app_register') }}">Register here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

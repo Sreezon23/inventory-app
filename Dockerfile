@@ -40,4 +40,4 @@ COPY --from=assets_builder /app/public/build ./public/build
 RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 RUN mkdir -p var && chown -R www-data:www-data var
 
-CMD php bin/console doctrine:migrations:migrate --no-interaction && apache2-foreground
+CMD php bin/console doctrine:schema:update --force --complete && apache2-foreground

@@ -45,10 +45,10 @@ class InventoryController extends AbstractController
             return $this->redirectToRoute('inventory_show', ['id' => $inventory->getId()]);
         }
 
-        // This fixes the "null" error by properly sending the form view
+        // --- THIS BLOCK FIXES THE ERROR ---
         return $this->render('inventory/new.html.twig', [
             'inventory' => $inventory,
-            'form' => $form->createView(),
+            'form' => $form->createView(), // The template needs this variable!
         ]);
     }
 

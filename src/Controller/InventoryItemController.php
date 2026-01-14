@@ -7,13 +7,13 @@ use App\Entity\InventoryItem;
 use App\Entity\ItemLike;
 use App\Form\InventoryItemType;
 use App\Repository\InventoryItemRepository;
-use App\Repository\InventoryRepository; // <--- Added this
+use App\Repository\InventoryRepository;
 use App\Service\CustomIdGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route; // <--- CHANGED THIS
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/inventory/{inventory_id<\d+>}/item')]
@@ -23,10 +23,9 @@ class InventoryItemController extends AbstractController
     public function index(
         int $inventory_id, 
         InventoryItemRepository $repository,
-        InventoryRepository $inventoryRepository // <--- Injected here
+        InventoryRepository $inventoryRepository
     ): Response
     {
-        // Replaced getDoctrine() with injected repository
         $inventory = $inventoryRepository->find($inventory_id);
         
         if (!$inventory) {
@@ -48,10 +47,9 @@ class InventoryItemController extends AbstractController
         Request $request,
         EntityManagerInterface $em,
         CustomIdGenerator $idGenerator,
-        InventoryRepository $inventoryRepository // <--- Injected here
+        InventoryRepository $inventoryRepository
     ): Response {
         
-        // Replaced getDoctrine() with injected repository
         $inventory = $inventoryRepository->find($inventory_id);
         
         if (!$inventory) {
@@ -64,11 +62,14 @@ class InventoryItemController extends AbstractController
         $item->setInventory($inventory);
         $item->setCreatedBy($this->getUser());
 
-        // Generate custom ID if format exists
-        if ($customFormat = $inventory->getCustomIdFormats()->first()) {
+        // FIXED LINE 68: 
+        // Changed getCustomIdFormats() to getCustomIdFormat() 
+        // Removed ->first() because it is a OneToOne relationship, not a collection.
+        $customFormat = $inventory->getCustomIdFormat();
+        
+        if ($customFormat) {
             $item->setCustomId($idGenerator->generateForItem($customFormat, $item));
         } else {
-            // Use UUID-like default
             $item->setCustomId('ITEM-' . uniqid());
         }
 

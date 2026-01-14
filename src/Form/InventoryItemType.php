@@ -19,10 +19,9 @@ class InventoryItemType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        /** @var InventoryItem $item */
-        $item = $options['data'];
+        $item = $builder->getData();
 
-        if ($item->getCustomId()) {
+        if ($item && $item->getCustomId()) {
             $builder->add('customId', TextType::class, [
                 'label' => 'Item ID',
                 'disabled' => true,
@@ -38,8 +37,8 @@ class InventoryItemType extends AbstractType
             $fieldName = $fieldDef->getStorageSlot();
             $label = $fieldDef->getFieldName();
             $isRequired = $fieldDef->isRequired();
-
             $constraints = [];
+
             if ($isRequired) {
                 $constraints[] = new NotBlank(['message' => "$label is required."]);
             }
@@ -82,7 +81,6 @@ class InventoryItemType extends AbstractType
 
                 case InventoryField::TYPE_DOCUMENT_LINK:
                     $constraints[] = new Length(['max' => 1024]);
-                    
                     $builder->add($fieldName, UrlType::class, [
                         'label' => $label . ' (Link)',
                         'required' => $isRequired,
@@ -98,9 +96,8 @@ class InventoryItemType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => InventoryItem::class,
-            'custom_fields' => [], 
+            'custom_fields' => [],
         ]);
-        
         $resolver->setAllowedTypes('custom_fields', 'array');
     }
 }

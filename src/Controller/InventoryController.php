@@ -51,7 +51,8 @@ class InventoryController extends AbstractController
         }
 
         return $this->render('inventory/new.html.twig', [
-            'form' => $form->createView(),
+            'inventory' => $inventory,
+            'form' => $form->createView(), // <--- THIS WAS THE FIX
         ]);
     }
 
@@ -84,8 +85,8 @@ class InventoryController extends AbstractController
         }
 
         return $this->render('inventory/edit.html.twig', [
-            'form' => $form->createView(),
             'inventory' => $inventory,
+            'form' => $form->createView(),
         ]);
     }
 
@@ -117,7 +118,6 @@ class InventoryController extends AbstractController
         if ($user && $inventory->getCreator()->getId() === $user->getId()) {
             return;
         }
-
 
         if ($user) {
             foreach ($inventory->getAccessList() as $access) {

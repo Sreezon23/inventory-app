@@ -26,19 +26,9 @@ class InventoryType extends AbstractType
                     new NotBlank(),
                     new Length(min: 3, max: 255),
                 ],
-            ])
-            ->add('customIdFormat', TextType::class, [
-                'label' => 'ID Format',
-                'required' => false,
-                'help' => 'Use {Y} for Year, {000} for Sequence. Example: INV-{Y}-{000}',
                 'attr' => [
-                    'placeholder' => 'ASSET-{Y}-{000}',
+                    'placeholder' => 'e.g. My Retro Game Collection',
                 ],
-            ])
-            ->add('description', TextareaType::class, [
-                'label' => 'Description',
-                'required' => false,
-                'attr' => ['rows' => 4],
             ])
             ->add('category', ChoiceType::class, [
                 'label' => 'Category',
@@ -50,15 +40,27 @@ class InventoryType extends AbstractType
                     'Other' => 'Other',
                 ],
             ])
-            ->add('isPublic', CheckboxType::class, [
-                'label' => 'Make this inventory public?',
+            ->add('description', TextareaType::class, [
+                'label' => 'Description',
                 'required' => false,
+                'attr' => ['rows' => 4],
+            ])
+            ->add('imageUrl', TextType::class, [
+                'label' => 'Image URL',
+                'required' => false,
+                'attr' => [
+                    'placeholder' => 'https://example.com/image.jpg',
+                ],
             ])
             ->add('tags', EntityType::class, [
                 'class' => InventoryTag::class,
                 'choice_label' => 'name',
                 'multiple' => true,
                 'expanded' => false,
+                'required' => false,
+            ])
+            ->add('isPublic', CheckboxType::class, [
+                'label' => 'Make this inventory public?',
                 'required' => false,
             ]);
     }

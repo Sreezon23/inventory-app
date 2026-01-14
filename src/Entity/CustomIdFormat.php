@@ -2,25 +2,30 @@
 
 namespace App\Entity;
 
+use App\Repository\CustomIdFormatRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: CustomIdFormatRepository::class)]
 #[ORM\Table(name: 'custom_id_format')]
+#[ORM\HasLifecycleCallbacks] 
 class CustomIdFormat
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\OneToOne(inversedBy: 'customIdFormat', targetEntity: Inventory::class)]
     #[ORM\JoinColumn(nullable: false, unique: true)]
-    private Inventory $inventory;
+    private ?Inventory $inventory = null;
+
 
     #[ORM\Column(type: 'json')]
     private array $elements = [];
 
+
     #[ORM\Column(type: 'integer')]
+    #[ORM\Version] 
     private int $version = 1;
 
     #[ORM\Column(type: 'datetime_immutable')]
@@ -31,16 +36,30 @@ class CustomIdFormat
 
     public function __construct()
     {
+
+    }
+
+    
+    #[ORM\PrePersist]
+    public function setCreatedAtValue(): void
+    {
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    public function getId(): int
+    #[ORM\PreUpdate]
+    public function setUpdatedAtValue(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getInventory(): Inventory
+    public function getInventory(): ?Inventory
     {
         return $this->inventory;
     }
@@ -48,11 +67,6 @@ class CustomIdFormat
     public function setInventory(Inventory $inventory): self
     {
         $this->inventory = $inventory;
-
-        if ($inventory->getCustomIdFormat() !== $this) {
-            $inventory->setCustomIdFormat($this);
-        }
-
         return $this;
     }
 
@@ -64,7 +78,6 @@ class CustomIdFormat
     public function setElements(array $elements): self
     {
         $this->elements = $elements;
-        $this->updatedAt = new \DateTimeImmutable();
         return $this;
     }
 
@@ -73,27 +86,23 @@ class CustomIdFormat
         return $this->version;
     }
 
-    public function setVersion(int $version): self
+    public function getCreatedAt(): \DateTimeImmutable
     {
-        $this->version = $version;
-        return $this;
+        return $this->createdAt;
     }
 
-    public function incrementVersion(): self
+    public function getUpdatedAt(): \DateTimeImmutable
     {
-        $this->version++;
-        $this->updatedAt = new \DateTimeImmutable();
-        return $this;
+        return $this->updatedAt;
     }
 
     public function getSequencePadding(): int
     {
         foreach ($this->elements as $element) {
-            if (($element['type'] ?? null) === 'sequence') {
-                return $element['padding'] ?? 0;
+            if (isset($element['type']) && $element['type'] === 'sequence') {
+                return (int)($element['padding'] ?? 0);
             }
         }
-
         return 0;
     }
 }

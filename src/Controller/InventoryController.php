@@ -9,7 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route; // <--- CHANGED THIS
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/inventory')]
@@ -18,7 +18,13 @@ class InventoryController extends AbstractController
     #[Route('/', name: 'inventory_index', methods: ['GET'])]
     public function index(InventoryRepository $inventoryRepository): Response
     {
-        $inventories = $inventoryRepository->findVisibleForUser($this->getUser());
+        $user = $this->getUser();
+        
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $inventories = $inventoryRepository->findVisibleForUser($user);
 
         return $this->render('inventory/index.html.twig', [
             'inventories' => $inventories,
@@ -39,7 +45,7 @@ class InventoryController extends AbstractController
             $em->persist($inventory);
             $em->flush();
 
-            $this->addFlash('success', 'Inventory created successfully!');
+            $this->addFlash('success', 'Inventory created successfully! Now add some fields.');
 
             return $this->redirectToRoute('inventory_show', ['id' => $inventory->getId()]);
         }
@@ -52,7 +58,6 @@ class InventoryController extends AbstractController
     #[Route('/{id}', name: 'inventory_show', methods: ['GET'])]
     public function show(Inventory $inventory): Response
     {
-        // Check access
         $this->checkInventoryAccess($inventory, 'read');
 
         return $this->render('inventory/show.html.twig', [
@@ -64,7 +69,6 @@ class InventoryController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function edit(Request $request, Inventory $inventory, EntityManagerInterface $em): Response
     {
-        // Only creator can edit
         if ($inventory->getCreator()->getId() !== $this->getUser()->getId()) {
             throw $this->createAccessDeniedException();
         }
@@ -106,21 +110,26 @@ class InventoryController extends AbstractController
     {
         $user = $this->getUser();
 
-        // Public or creator
-        if ($inventory->isPublic() || $inventory->getCreator()->getId() === $user?->getId()) {
+        if ($type === 'read' && $inventory->isPublic()) {
             return;
         }
 
-        // Has access
-        foreach ($inventory->getAccessList() as $access) {
-            if ($access->getUser()->getId() === $user?->getId()) {
-                if ($type === 'write' && !$access->isCanWrite()) {
-                    throw $this->createAccessDeniedException();
+        if ($user && $inventory->getCreator()->getId() === $user->getId()) {
+            return;
+        }
+
+
+        if ($user) {
+            foreach ($inventory->getAccessList() as $access) {
+                if ($access->getUser()->getId() === $user->getId()) {
+                    if ($type === 'write' && !$access->isCanWrite()) {
+                        throw $this->createAccessDeniedException();
+                    }
+                    return;
                 }
-                return;
             }
         }
 
-        throw $this->createAccessDeniedException();
+        throw $this->createAccessDeniedException('You do not have access to this inventory.');
     }
 }

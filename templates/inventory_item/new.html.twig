@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Item - {{ inventory.title }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Add Item to {{ inventory.title }}</h1>
+    <div class="card mt-3">
+        <div class="card-body">
+            {% include 'inventory_item/_form.html.twig' with {'button_label': 'Create Item'} %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -20,12 +20,19 @@ class InventoryType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('title', TextType::class, [
-                'label' => 'Title',
+            ->add('name', TextType::class, [
+                'label' => 'Inventory Name',
                 'constraints' => [
-                    // FIX: Named arguments used here
-                    new NotBlank(message: 'Title is required'),
+                    new NotBlank(),
                     new Length(min: 3, max: 255),
+                ],
+            ])
+            ->add('customIdFormat', TextType::class, [
+                'label' => 'ID Format',
+                'required' => false,
+                'help' => 'Use {Y} for Year, {000} for Sequence. Example: INV-{Y}-{000}',
+                'attr' => [
+                    'placeholder' => 'ASSET-{Y}-{000}',
                 ],
             ])
             ->add('description', TextareaType::class, [
@@ -37,17 +44,11 @@ class InventoryType extends AbstractType
                 'label' => 'Category',
                 'choices' => [
                     'Books' => 'Books',
-                    'Movies' => 'Movies',
-                    'Games' => 'Games',
-                    'Music' => 'Music',
+                    'Electronics' => 'Electronics',
+                    'Furniture' => 'Furniture',
                     'Tools' => 'Tools',
                     'Other' => 'Other',
                 ],
-            ])
-            ->add('imageUrl', TextType::class, [
-                'label' => 'Image URL',
-                'required' => false,
-                'attr' => ['placeholder' => 'https://example.com/image.jpg'],
             ])
             ->add('isPublic', CheckboxType::class, [
                 'label' => 'Make this inventory public?',
@@ -57,8 +58,8 @@ class InventoryType extends AbstractType
                 'class' => InventoryTag::class,
                 'choice_label' => 'name',
                 'multiple' => true,
+                'expanded' => false,
                 'required' => false,
-                'label' => 'Tags',
             ]);
     }
 

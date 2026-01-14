@@ -2,47 +2,35 @@
 
 namespace App\Entity;
 
+use App\Repository\InventoryTagRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: InventoryTagRepository::class)]
 #[ORM\Table(name: 'inventory_tag')]
-#[ORM\UniqueConstraint(name: 'UNIQ_TAG_NAME', columns: ['name'])]
+#[ORM\HasLifecycleCallbacks]
 class InventoryTag
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private int $id;
+    #[ORM\Column]
+    private ?int $id = null;
 
-    #[ORM\Column(type: 'string', length: 100, unique: true)]
-    private string $name;
+    #[ORM\Column(length: 100, unique: true)]
+    private ?string $name = null;
 
-    #[ORM\Column(type: 'datetime_immutable')]
-    private \DateTimeImmutable $createdAt;
+    #[ORM\Column]
+    private ?\DateTimeImmutable $createdAt = null;
 
-    public function __construct()
+    #[ORM\PrePersist]
+    public function setCreatedAtValue(): void
     {
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    public function getId(): int
-    {
-        return $this->id;
-    }
+    public function getId(): ?int { return $this->id; }
 
-    public function getName(): string
-    {
-        return $this->name;
-    }
+    public function getName(): ?string { return $this->name; }
+    public function setName(string $name): self { $this->name = $name; return $this; }
 
-    public function setName(string $name): self
-    {
-        $this->name = $name;
-        return $this;
-    }
-
-    public function getCreatedAt(): \DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
+    public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
 }

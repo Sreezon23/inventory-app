@@ -15,7 +15,6 @@ class InventoryAccessService
 
     public function grantAccess(Inventory $inventory, User $user, bool $canWrite = false): void
     {
-        // Check if already has access
         foreach ($inventory->getAccessList() as $access) {
             if ($access->getUser()->getId() === $user->getId()) {
                 $access->setCanWrite($canWrite);

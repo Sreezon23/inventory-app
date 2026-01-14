@@ -2,19 +2,21 @@
 
 namespace App\Entity;
 
+use App\Repository\InventoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: \App\Repository\InventoryRepository::class)]
+#[ORM\Entity(repositoryClass: InventoryRepository::class)]
 #[ORM\Table(name: 'inventory')]
 #[ORM\Index(name: 'idx_inventory_creator', columns: ['creator_id'])]
+#[ORM\HasLifecycleCallbacks]
 class Inventory
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
     private string $title;
@@ -32,11 +34,12 @@ class Inventory
     private bool $isPublic = false;
 
     #[ORM\Column(type: 'integer')]
+    #[ORM\Version]
     private int $version = 1;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'inventories')]
     #[ORM\JoinColumn(nullable: false)]
-    private User $creator;
+    private ?User $creator = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
@@ -44,13 +47,13 @@ class Inventory
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
-    #[ORM\OneToMany(mappedBy: 'inventory', targetEntity: InventoryField::class, cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'inventory', targetEntity: InventoryField::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $fields;
 
-    #[ORM\OneToMany(mappedBy: 'inventory', targetEntity: InventoryItem::class, cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'inventory', targetEntity: InventoryItem::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $items;
 
-    #[ORM\OneToMany(mappedBy: 'inventory', targetEntity: InventoryAccess::class, cascade: ['remove'])]
+    #[ORM\OneToMany(mappedBy: 'inventory', targetEntity: InventoryAccess::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $accessList;
 
     #[ORM\OneToOne(mappedBy: 'inventory', targetEntity: CustomIdFormat::class, cascade: ['persist', 'remove'])]
@@ -65,8 +68,6 @@ class Inventory
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
         $this->fields = new ArrayCollection();
         $this->items = new ArrayCollection();
         $this->accessList = new ArrayCollection();
@@ -74,102 +75,111 @@ class Inventory
         $this->tags = new ArrayCollection();
     }
 
-    public function getId(): int { return $this->id; }
+
+    #[ORM\PrePersist]
+    public function setCreatedAtValue(): void
+    {
+        $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    #[ORM\PreUpdate]
+    public function setUpdatedAtValue(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    public function getId(): ?int { return $this->id; }
 
     public function getTitle(): string { return $this->title; }
-
     public function setTitle(string $title): self
     {
         $this->title = $title;
-        $this->updatedAt = new \DateTimeImmutable();
         return $this;
     }
 
     public function getDescription(): ?string { return $this->description; }
-
     public function setDescription(?string $description): self
     {
         $this->description = $description;
-        $this->updatedAt = new \DateTimeImmutable();
         return $this;
     }
 
     public function getCategory(): string { return $this->category; }
-
     public function setCategory(string $category): self
     {
         $this->category = $category;
-        $this->updatedAt = new \DateTimeImmutable();
         return $this;
     }
 
     public function getImageUrl(): ?string { return $this->imageUrl; }
-
     public function setImageUrl(?string $imageUrl): self
     {
         $this->imageUrl = $imageUrl;
-        $this->updatedAt = new \DateTimeImmutable();
         return $this;
     }
 
     public function isPublic(): bool { return $this->isPublic; }
-
     public function setIsPublic(bool $isPublic): self
     {
         $this->isPublic = $isPublic;
-        $this->updatedAt = new \DateTimeImmutable();
         return $this;
     }
 
     public function getVersion(): int { return $this->version; }
 
-    public function setVersion(int $version): self
-    {
-        $this->version = $version;
-        return $this;
-    }
-
-    public function incrementVersion(): self
-    {
-        $this->version++;
-        $this->updatedAt = new \DateTimeImmutable();
-        return $this;
-    }
-
-    public function getCreator(): User { return $this->creator; }
-
-    public function setCreator(User $creator): self
+    public function getCreator(): ?User { return $this->creator; }
+    public function setCreator(?User $creator): self
     {
         $this->creator = $creator;
         return $this;
     }
 
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
-
     public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
 
+
+    /**
+     * @return Collection<int, InventoryField>
+     */
     public function getFields(): Collection { return $this->fields; }
+
+    public function addField(InventoryField $field): self
+    {
+        if (!$this->fields->contains($field)) {
+            $this->fields->add($field);
+            $field->setInventory($this);
+        }
+        return $this;
+    }
+
+    public function removeField(InventoryField $field): self
+    {
+        if ($this->fields->removeElement($field)) {
+
+            if ($field->getInventory() === $this) {
+                $field->setInventory(null);
+            }
+        }
+        return $this;
+    }
 
     public function getItems(): Collection { return $this->items; }
 
     public function getAccessList(): Collection { return $this->accessList; }
 
-    public function getCustomIdFormat(): ?CustomIdFormat
+    public function getCustomIdFormat(): ?CustomIdFormat { return $this->customIdFormat; }
+    public function setCustomIdFormat(?CustomIdFormat $customIdFormat): self
     {
-        return $this->customIdFormat;
-    }
-
-    public function getCustomIdFormats(): ?CustomIdFormat
-    {
-        return $this->getCustomIdFormat();
-    }
-
-    public function setCustomIdFormat(?CustomIdFormat $format): self
-    {
-        $this->customIdFormat = $format;
-        if ($format !== null && $format->getInventory() !== $this) {
-            $format->setInventory($this);
+        if ($customIdFormat === null && $this->customIdFormat !== null) {
+            $this->customIdFormat->setInventory(null);
         }
+
+        if ($customIdFormat !== null && $customIdFormat->getInventory() !== $this) {
+            $customIdFormat->setInventory($this);
+        }
+
+        $this->customIdFormat = $customIdFormat;
         return $this;
     }
 

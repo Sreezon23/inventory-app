@@ -39,6 +39,7 @@ class RegistrationType extends AbstractType
                     new NotBlank(),
                     new Length(min: 8, max: 4096),
                 ],
+                'attr' => ['autocomplete' => 'new-password'],
             ]);
     }
 

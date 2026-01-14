@@ -1,0 +1,24 @@
+{{ form_start(form) }}
+    {% if form.customId is defined %}
+        <div class="mb-3">
+            {{ form_label(form.customId) }}
+            {{ form_widget(form.customId, {'attr': {'class': 'form-control', 'disabled': 'disabled'}}) }}
+        </div>
+    {% endif %}
+
+    {% for field in form %}
+        {% if field.vars.name != 'customId' and field.vars.name != '_token' %}
+            <div class="mb-3">
+                {{ form_label(field) }}
+                {{ form_widget(field, {'attr': {'class': 'form-control' ~ (field.vars.errors|length > 0 ? ' is-invalid' : '')}}) }}
+                {{ form_help(field) }}
+                <div class="invalid-feedback">
+                    {{ form_errors(field) }}
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    <button class="btn btn-success">{{ button_label|default('Save') }}</button>
+    <a href="{{ path('inventory_item_index', {inventory_id: inventory.id}) }}" class="btn btn-link">Cancel</a>
+{{ form_end(form) }}

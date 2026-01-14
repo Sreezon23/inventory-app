@@ -2,16 +2,19 @@
 
 namespace App\Entity;
 
+use App\Repository\InventoryFieldRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: InventoryFieldRepository::class)]
 #[ORM\Table(name: 'inventory_field')]
+#[ORM\UniqueConstraint(name: 'unique_field_name_inv', columns: ['inventory_id', 'field_name'])]
+#[ORM\UniqueConstraint(name: 'unique_storage_slot_inv', columns: ['inventory_id', 'storage_slot'])]
 class InventoryField
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Inventory::class, inversedBy: 'fields')]
     #[ORM\JoinColumn(nullable: false)]
@@ -22,6 +25,9 @@ class InventoryField
 
     #[ORM\Column(type: 'string', length: 50)]
     private string $fieldType;
+
+    #[ORM\Column(type: 'string', length: 20)]
+    private string $storageSlot;
 
     #[ORM\Column(type: 'integer')]
     private int $fieldOrder = 0;
@@ -52,13 +58,31 @@ class InventoryField
     public const TYPE_BOOLEAN = 'boolean';
     public const TYPE_DOCUMENT_LINK = 'document_link';
 
-    public const MAX_TEXT_FIELDS = 3;
-    public const MAX_TEXTAREA_FIELDS = 3;
-    public const MAX_NUMBER_FIELDS = 3;
-    public const MAX_BOOLEAN_FIELDS = 3;
-    public const MAX_DOCUMENT_FIELDS = 3;
+    public const MAX_PER_TYPE = 3;
 
-    public function getId(): int
+    public const ALLOWED_SLOTS = [
+        'text1', 'text2', 'text3',
+        'textarea1', 'textarea2', 'textarea3',
+        'number1', 'number2', 'number3',
+        'bool1', 'bool2', 'bool3',
+        'link1', 'link2', 'link3',
+    ];
+
+    /**
+     * Helper to determine field type based on the slot name.
+     */
+    public static function getTypeFromSlot(string $slot): string 
+    {
+        if (str_starts_with($slot, 'textarea')) return self::TYPE_TEXTAREA;
+        if (str_starts_with($slot, 'text')) return self::TYPE_TEXT;
+        if (str_starts_with($slot, 'number')) return self::TYPE_NUMBER;
+        if (str_starts_with($slot, 'bool')) return self::TYPE_BOOLEAN;
+        if (str_starts_with($slot, 'link')) return self::TYPE_DOCUMENT_LINK;
+        
+        return 'unknown';
+    }
+
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -68,9 +92,13 @@ class InventoryField
         return $this->inventory;
     }
 
-    public function setInventory(Inventory $inventory): self
+    public function setInventory(?Inventory $inventory): self
     {
-        $this->inventory = $inventory;
+        // This setter is technically nullable for detach logic, but property is non-null
+        // Care should be taken when using this.
+        if ($inventory !== null) {
+            $this->inventory = $inventory;
+        }
         return $this;
     }
 
@@ -93,6 +121,20 @@ class InventoryField
     public function setFieldType(string $fieldType): self
     {
         $this->fieldType = $fieldType;
+        return $this;
+    }
+
+    public function getStorageSlot(): string
+    {
+        return $this->storageSlot;
+    }
+
+    public function setStorageSlot(string $storageSlot): self
+    {
+        if (!in_array($storageSlot, self::ALLOWED_SLOTS)) {
+            throw new \InvalidArgumentException("Invalid storage slot: $storageSlot");
+        }
+        $this->storageSlot = $storageSlot;
         return $this;
     }
 

@@ -12,7 +12,7 @@ class InventoryDiscussionPost
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: Inventory::class, inversedBy: 'discussionPosts')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -37,7 +37,7 @@ class InventoryDiscussionPost
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    public function getId(): int
+    public function getId(): ?int
     {
         return $this->id;
     }

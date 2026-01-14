@@ -2,50 +2,37 @@
 
 namespace App\Service;
 
-use App\Entity\CustomIdFormat;
 use App\Entity\InventoryItem;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\InventoryItemRepository;
 
 class CustomIdGenerator
 {
-    private int $sequenceCounter = 0;
+    public function __construct(
+        private InventoryItemRepository $repository
+    ) {}
 
-    public function __construct(private EntityManagerInterface $em)
+    public function generateForItem(string $format, InventoryItem $item): string
     {
-    }
+        $inventory = $item->getInventory();
+        
+        $replaced = str_replace(
+            ['{Y}', '{m}', '{d}'],
+            [date('Y'), date('m'), date('d')],
+            $format
+        );
 
-    public function generateForItem(CustomIdFormat $format, InventoryItem $item): string
-    {
-        $parts = [];
-
-        foreach ($format->getElements() as $element) {
-            switch ($element['type'] ?? null) {
-                case 'prefix':
-                    $parts[] = $element['value'] ?? '';
-                    break;
-                case 'date':
-                    $dateFormat = $element['format'] ?? 'Ymd';
-                    $parts[] = (new \DateTimeImmutable())->format($dateFormat);
-                    break;
-                case 'sequence':
-                    $padding = $element['padding'] ?? 4;
-                    $sequence = $this->getNextSequence($format);
-                    $parts[] = str_pad((string) $sequence, $padding, '0', STR_PAD_LEFT);
-                    break;
-                case 'random':
-                    $length = $element['length'] ?? 6;
-                    $parts[] = strtoupper(substr(bin2hex(random_bytes($length)), 0, $length));
-                    break;
-            }
+        if (str_contains($replaced, '{000}')) {
+            $count = $this->repository->count(['inventory' => $inventory]);
+            $sequence = str_pad((string)($count + 1), 3, '0', STR_PAD_LEFT);
+            $replaced = str_replace('{000}', $sequence, $replaced);
         }
 
-        return implode($element['separator'] ?? '', $parts);
-    }
+        if (str_contains($replaced, '{0000}')) {
+            $count = $this->repository->count(['inventory' => $inventory]);
+            $sequence = str_pad((string)($count + 1), 4, '0', STR_PAD_LEFT);
+            $replaced = str_replace('{0000}', $sequence, $replaced);
+        }
 
-    private function getNextSequence(CustomIdFormat $format): int
-    {
-        // Simple implementation: count existing items in inventory
-        $inventory = $format->getInventory();
-        return $inventory->getItems()->count() + 1;
+        return $replaced;
     }
 }

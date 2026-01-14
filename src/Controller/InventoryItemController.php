@@ -21,22 +21,23 @@ class InventoryItemController extends AbstractController
 {
     #[Route('/', name: 'inventory_item_index', methods: ['GET'])]
     public function index(
-        int $inventory_id, 
+        int $inventory_id,
         InventoryItemRepository $repository,
         InventoryRepository $inventoryRepository
     ): Response
     {
         $inventory = $inventoryRepository->find($inventory_id);
-        
+
         if (!$inventory) {
             throw $this->createNotFoundException();
         }
 
-        $items = $repository->findByInventoryWithValues($inventory);
+        $items = $repository->findBy(['inventory' => $inventory], ['createdAt' => 'DESC']);
 
         return $this->render('inventory_item/index.html.twig', [
             'inventory' => $inventory,
             'items' => $items,
+            'fields' => $inventory->getFields(), 
         ]);
     }
 
@@ -49,9 +50,9 @@ class InventoryItemController extends AbstractController
         CustomIdGenerator $idGenerator,
         InventoryRepository $inventoryRepository
     ): Response {
-        
+
         $inventory = $inventoryRepository->find($inventory_id);
-        
+
         if (!$inventory) {
             throw $this->createNotFoundException();
         }
@@ -62,18 +63,22 @@ class InventoryItemController extends AbstractController
         $item->setInventory($inventory);
         $item->setCreatedBy($this->getUser());
 
-        // FIXED LINE 68: 
-        // Changed getCustomIdFormats() to getCustomIdFormat() 
-        // Removed ->first() because it is a OneToOne relationship, not a collection.
         $customFormat = $inventory->getCustomIdFormat();
-        
         if ($customFormat) {
             $item->setCustomId($idGenerator->generateForItem($customFormat, $item));
         } else {
             $item->setCustomId('ITEM-' . uniqid());
         }
 
-        $form = $this->createForm(InventoryItemType::class, $item);
+        $fields = $inventory->getFields()->toArray();
+
+
+        usort($fields, fn($a, $b) => $a->getFieldOrder() <=> $b->getFieldOrder());
+
+        $form = $this->createForm(InventoryItemType::class, $item, [
+            'custom_fields' => $fields,
+        ]);
+        
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -91,6 +96,44 @@ class InventoryItemController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/edit', name: 'inventory_item_edit', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function edit(
+        int $inventory_id, 
+        InventoryItem $item, 
+        Request $request, 
+        EntityManagerInterface $em
+    ): Response
+    {
+        if ($item->getInventory()->getId() !== $inventory_id) {
+            throw $this->createNotFoundException();
+        }
+
+        $this->checkInventoryWriteAccess($item->getInventory());
+
+
+        $fields = $item->getInventory()->getFields()->toArray();
+        usort($fields, fn($a, $b) => $a->getFieldOrder() <=> $b->getFieldOrder());
+
+        $form = $this->createForm(InventoryItemType::class, $item, [
+            'custom_fields' => $fields,
+        ]);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->flush();
+            $this->addFlash('success', 'Item updated!');
+            return $this->redirectToRoute('inventory_item_index', ['inventory_id' => $inventory_id]);
+        }
+
+        return $this->render('inventory_item/edit.html.twig', [
+            'form' => $form->createView(),
+            'inventory' => $item->getInventory(),
+            'item' => $item
+        ]);
+    }
+
     #[Route('/{id}', name: 'inventory_item_show', methods: ['GET'])]
     public function show(int $inventory_id, InventoryItem $item): Response
     {
@@ -101,6 +144,7 @@ class InventoryItemController extends AbstractController
         return $this->render('inventory_item/show.html.twig', [
             'item' => $item,
             'inventory' => $item->getInventory(),
+            'fields' => $item->getInventory()->getFields(),
         ]);
     }
 
@@ -124,21 +168,27 @@ class InventoryItemController extends AbstractController
 
         if ($existingLike) {
             $em->remove($existingLike);
+            $action = 'unliked';
         } else {
             $like = new ItemLike();
             $like->setItem($item);
             $like->setUser($user);
             $em->persist($like);
+            $action = 'liked';
         }
 
         $em->flush();
-
-        return $this->json(['likes' => $item->countLikes()]);
+        
+        return $this->json([
+            'status' => $action, 
+            'likes' => $item->getLikes()->count()
+        ]);
     }
 
     private function checkInventoryWriteAccess(Inventory $inventory): void
     {
         $user = $this->getUser();
+        if (!$user) throw $this->createAccessDeniedException();
 
         if ($inventory->getCreator()->getId() === $user->getId()) {
             return;

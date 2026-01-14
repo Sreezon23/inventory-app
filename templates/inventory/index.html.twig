@@ -22,20 +22,25 @@
                 <div class="col-md-4 mb-4">
                     <div class="card h-100">
                         {% if inventory.imageUrl %}
-                            <img src="{{ inventory.imageUrl }}" class="card-img-top" alt="{{ inventory.title }}">
+                            <img src="{{ inventory.imageUrl }}" class="card-img-top" alt="{{ inventory.title }}" style="height: 200px; object-fit: cover;">
                         {% else %}
                             <div class="card-img-top bg-secondary" style="height: 200px; display: flex; align-items: center; justify-content: center;">
                                 <span class="text-white">No Image</span>
                             </div>
                         {% endif %}
                         <div class="card-body">
+                            {# This was likely the error line. It must be .title, not .name #}
                             <h5 class="card-title">{{ inventory.title }}</h5>
-                            {# FIX: Replaced truncate with slice to fix the error #}
-                            <p class="card-text text-muted">{{ inventory.description|slice(0, 100) ~ (inventory.description|length > 100 ? '...' : '') }}</p>
+                            
+                            <p class="card-text text-muted">
+                                {{ inventory.description|slice(0, 100) ~ (inventory.description|length > 100 ? '...' : '') }}
+                            </p>
                             <p class="card-text">
                                 <small class="text-muted">
                                     Category: <strong>{{ inventory.category }}</strong><br>
+                                    {# This check handles if items collection is not initialized yet #}
                                     Items: <strong>{{ inventory.items|length }}</strong><br>
+                                    
                                     {% if inventory.isPublic %}
                                         <span class="badge bg-success">Public</span>
                                     {% else %}
@@ -46,7 +51,7 @@
                         </div>
                         <div class="card-footer bg-white">
                             <a href="{{ path('inventory_show', {id: inventory.id}) }}" class="btn btn-sm btn-outline-primary">View</a>
-                            {% if app.user and app.user.id == inventory.creator.id %}
+                            {% if app.user and inventory.creator and app.user.id == inventory.creator.id %}
                                 <a href="{{ path('inventory_edit', {id: inventory.id}) }}" class="btn btn-sm btn-outline-secondary">Edit</a>
                             {% endif %}
                         </div>

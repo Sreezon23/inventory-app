@@ -20,7 +20,7 @@ class InventoryType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, [
+            ->add('title', TextType::class, [
                 'label' => 'Inventory Name',
                 'constraints' => [
                     new NotBlank(),

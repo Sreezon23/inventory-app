@@ -75,7 +75,6 @@ class Inventory
         $this->tags = new ArrayCollection();
     }
 
-
     #[ORM\PrePersist]
     public function setCreatedAtValue(): void
     {
@@ -89,7 +88,12 @@ class Inventory
         $this->updatedAt = new \DateTimeImmutable();
     }
 
+    // --- GETTERS AND SETTERS ---
+
     public function getId(): ?int { return $this->id; }
+
+    // This is the specific fix for your error
+    public function getName(): string { return $this->title; }
 
     public function getTitle(): string { return $this->title; }
     public function setTitle(string $title): self
@@ -138,7 +142,6 @@ class Inventory
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
 
-
     /**
      * @return Collection<int, InventoryField>
      */
@@ -156,7 +159,6 @@ class Inventory
     public function removeField(InventoryField $field): self
     {
         if ($this->fields->removeElement($field)) {
-
             if ($field->getInventory() === $this) {
                 $field->setInventory(null);
             }

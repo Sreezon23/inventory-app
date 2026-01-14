@@ -19,7 +19,9 @@ class InventoryController extends AbstractController
     public function index(InventoryRepository $inventoryRepository): Response
     {
         $user = $this->getUser();
-        if (!$user) { return $this->redirectToRoute('app_login'); }
+        if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
 
         $inventories = $inventoryRepository->findVisibleForUser($user);
 
@@ -42,26 +44,37 @@ class InventoryController extends AbstractController
             $em->persist($inventory);
             $em->flush();
             $this->addFlash('success', 'Inventory created successfully!');
+
             return $this->redirectToRoute('inventory_show', ['id' => $inventory->getId()]);
         }
 
-        // --- THIS BLOCK FIXES THE ERROR ---
         return $this->render('inventory/new.html.twig', [
             'inventory' => $inventory,
-            'form' => $form->createView(), // The template needs this variable!
+            'form' => $form->createView(),
         ]);
     }
 
-    #[Route('/{id}', name: 'inventory_show', methods: ['GET'])]
+    #[Route(
+        '/{id}',
+        name: 'inventory_show',
+        methods: ['GET'],
+        requirements: ['id' => '\d+']
+    )]
     public function show(Inventory $inventory): Response
     {
         $this->checkInventoryAccess($inventory, 'read');
+
         return $this->render('inventory/show.html.twig', [
             'inventory' => $inventory,
         ]);
     }
 
-    #[Route('/{id}/edit', name: 'inventory_edit', methods: ['GET', 'POST'])]
+    #[Route(
+        '/{id}/edit',
+        name: 'inventory_edit',
+        methods: ['GET', 'POST'],
+        requirements: ['id' => '\d+']
+    )]
     #[IsGranted('ROLE_USER')]
     public function edit(Request $request, Inventory $inventory, EntityManagerInterface $em): Response
     {
@@ -75,6 +88,7 @@ class InventoryController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
             $this->addFlash('success', 'Inventory updated!');
+
             return $this->redirectToRoute('inventory_show', ['id' => $inventory->getId()]);
         }
 
@@ -84,7 +98,12 @@ class InventoryController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'inventory_delete', methods: ['POST'])]
+    #[Route(
+        '/{id}',
+        name: 'inventory_delete',
+        methods: ['POST'],
+        requirements: ['id' => '\d+']
+    )]
     #[IsGranted('ROLE_USER')]
     public function delete(Request $request, Inventory $inventory, EntityManagerInterface $em): Response
     {
@@ -104,19 +123,27 @@ class InventoryController extends AbstractController
     private function checkInventoryAccess(Inventory $inventory, string $type = 'read'): void
     {
         $user = $this->getUser();
-        if ($type === 'read' && $inventory->isPublic()) { return; }
-        if ($user && $inventory->getCreator()->getId() === $user->getId()) { return; }
-        
+
+        if ($type === 'read' && $inventory->isPublic()) {
+            return;
+        }
+
+        if ($user && $inventory->getCreator()->getId() === $user->getId()) {
+            return;
+        }
+
         if ($user) {
             foreach ($inventory->getAccessList() as $access) {
                 if ($access->getUser()->getId() === $user->getId()) {
                     if ($type === 'write' && !$access->isCanWrite()) {
                         throw $this->createAccessDeniedException();
                     }
+
                     return;
                 }
             }
         }
+
         throw $this->createAccessDeniedException('You do not have access to this inventory.');
     }
 }

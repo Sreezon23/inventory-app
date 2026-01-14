@@ -19,10 +19,7 @@ class InventoryController extends AbstractController
     public function index(InventoryRepository $inventoryRepository): Response
     {
         $user = $this->getUser();
-        
-        if (!$user) {
-            return $this->redirectToRoute('app_login');
-        }
+        if (!$user) { return $this->redirectToRoute('app_login'); }
 
         $inventories = $inventoryRepository->findVisibleForUser($user);
 
@@ -44,15 +41,14 @@ class InventoryController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($inventory);
             $em->flush();
-
-            $this->addFlash('success', 'Inventory created successfully! Now add some fields.');
-
+            $this->addFlash('success', 'Inventory created successfully!');
             return $this->redirectToRoute('inventory_show', ['id' => $inventory->getId()]);
         }
 
+        // This fixes the "null" error by properly sending the form view
         return $this->render('inventory/new.html.twig', [
             'inventory' => $inventory,
-            'form' => $form->createView(), // <--- THIS WAS THE FIX
+            'form' => $form->createView(),
         ]);
     }
 
@@ -60,7 +56,6 @@ class InventoryController extends AbstractController
     public function show(Inventory $inventory): Response
     {
         $this->checkInventoryAccess($inventory, 'read');
-
         return $this->render('inventory/show.html.twig', [
             'inventory' => $inventory,
         ]);
@@ -80,7 +75,6 @@ class InventoryController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
             $this->addFlash('success', 'Inventory updated!');
-
             return $this->redirectToRoute('inventory_show', ['id' => $inventory->getId()]);
         }
 
@@ -110,15 +104,9 @@ class InventoryController extends AbstractController
     private function checkInventoryAccess(Inventory $inventory, string $type = 'read'): void
     {
         $user = $this->getUser();
-
-        if ($type === 'read' && $inventory->isPublic()) {
-            return;
-        }
-
-        if ($user && $inventory->getCreator()->getId() === $user->getId()) {
-            return;
-        }
-
+        if ($type === 'read' && $inventory->isPublic()) { return; }
+        if ($user && $inventory->getCreator()->getId() === $user->getId()) { return; }
+        
         if ($user) {
             foreach ($inventory->getAccessList() as $access) {
                 if ($access->getUser()->getId() === $user->getId()) {
@@ -129,7 +117,6 @@ class InventoryController extends AbstractController
                 }
             }
         }
-
         throw $this->createAccessDeniedException('You do not have access to this inventory.');
     }
 }

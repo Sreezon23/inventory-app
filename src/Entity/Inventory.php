@@ -74,15 +74,9 @@ class Inventory
         $this->tags = new ArrayCollection();
     }
 
-    public function getId(): int
-    {
-        return $this->id;
-    }
+    public function getId(): int { return $this->id; }
 
-    public function getTitle(): string
-    {
-        return $this->title;
-    }
+    public function getTitle(): string { return $this->title; }
 
     public function setTitle(string $title): self
     {
@@ -91,10 +85,7 @@ class Inventory
         return $this;
     }
 
-    public function getDescription(): ?string
-    {
-        return $this->description;
-    }
+    public function getDescription(): ?string { return $this->description; }
 
     public function setDescription(?string $description): self
     {
@@ -103,10 +94,7 @@ class Inventory
         return $this;
     }
 
-    public function getCategory(): string
-    {
-        return $this->category;
-    }
+    public function getCategory(): string { return $this->category; }
 
     public function setCategory(string $category): self
     {
@@ -115,10 +103,7 @@ class Inventory
         return $this;
     }
 
-    public function getImageUrl(): ?string
-    {
-        return $this->imageUrl;
-    }
+    public function getImageUrl(): ?string { return $this->imageUrl; }
 
     public function setImageUrl(?string $imageUrl): self
     {
@@ -127,10 +112,7 @@ class Inventory
         return $this;
     }
 
-    public function isPublic(): bool
-    {
-        return $this->isPublic;
-    }
+    public function isPublic(): bool { return $this->isPublic; }
 
     public function setIsPublic(bool $isPublic): self
     {
@@ -139,10 +121,7 @@ class Inventory
         return $this;
     }
 
-    public function getVersion(): int
-    {
-        return $this->version;
-    }
+    public function getVersion(): int { return $this->version; }
 
     public function setVersion(int $version): self
     {
@@ -157,10 +136,7 @@ class Inventory
         return $this;
     }
 
-    public function getCreator(): User
-    {
-        return $this->creator;
-    }
+    public function getCreator(): User { return $this->creator; }
 
     public function setCreator(User $creator): self
     {
@@ -168,56 +144,38 @@ class Inventory
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
+    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
 
-    public function getUpdatedAt(): \DateTimeImmutable
-    {
-        return $this->updatedAt;
-    }
+    public function getUpdatedAt(): \DateTimeImmutable { return $this->updatedAt; }
 
-    public function getFields(): Collection
-    {
-        return $this->fields;
-    }
+    public function getFields(): Collection { return $this->fields; }
 
-    public function getItems(): Collection
-    {
-        return $this->items;
-    }
+    public function getItems(): Collection { return $this->items; }
 
-    public function getAccessList(): Collection
-    {
-        return $this->accessList;
-    }
+    public function getAccessList(): Collection { return $this->accessList; }
 
     public function getCustomIdFormat(): ?CustomIdFormat
     {
         return $this->customIdFormat;
     }
 
+    public function getCustomIdFormats(): ?CustomIdFormat
+    {
+        return $this->getCustomIdFormat();
+    }
+
     public function setCustomIdFormat(?CustomIdFormat $format): self
     {
         $this->customIdFormat = $format;
-
         if ($format !== null && $format->getInventory() !== $this) {
             $format->setInventory($this);
         }
-
         return $this;
     }
 
-    public function getDiscussionPosts(): Collection
-    {
-        return $this->discussionPosts;
-    }
+    public function getDiscussionPosts(): Collection { return $this->discussionPosts; }
 
-    public function getTags(): Collection
-    {
-        return $this->tags;
-    }
+    public function getTags(): Collection { return $this->tags; }
 
     public function addTag(InventoryTag $tag): self
     {

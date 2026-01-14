@@ -16,15 +16,15 @@
                     <div class="card-body p-5">
                         {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
 
-                        {# --- Title Section --- #}
+                        {# --- Name Section --- #}
                         <div class="mb-4">
-                            {{ form_label(form.title, null, {'label_attr': {'class': 'form-label fw-bold text-secondary'}}) }}
-                            {{ form_widget(form.title, {'attr': {'class': 'form-control form-control-lg', 'placeholder': 'e.g. My Retro Game Collection'}}) }}
-                            <div class="form-text">{{ form_help(form.title) }}</div>
-                            {{ form_errors(form.title) }}
+                            {{ form_label(form.name, null, {'label_attr': {'class': 'form-label fw-bold text-secondary'}}) }}
+                            {{ form_widget(form.name, {'attr': {'class': 'form-control form-control-lg', 'placeholder': 'e.g. My Retro Game Collection'}}) }}
+                            <div class="form-text">{{ form_help(form.name) }}</div>
+                            {{ form_errors(form.name) }}
                         </div>
 
-                        {# --- 2 Column Grid for Category & Tags --- #}
+                        {# --- 2 Column Grid for Category & ID Format --- #}
                         <div class="row g-3 mb-4">
                             <div class="col-md-6">
                                 {{ form_label(form.category, null, {'label_attr': {'class': 'form-label fw-bold text-secondary'}}) }}
@@ -32,9 +32,9 @@
                                 {{ form_errors(form.category) }}
                             </div>
                             <div class="col-md-6">
-                                {{ form_label(form.tags, null, {'label_attr': {'class': 'form-label fw-bold text-secondary'}}) }}
-                                {{ form_widget(form.tags, {'attr': {'class': 'form-control', 'data-placeholder': 'Select tags...'}}) }}
-                                {{ form_errors(form.tags) }}
+                                {{ form_label(form.customIdFormat, null, {'label_attr': {'class': 'form-label fw-bold text-secondary'}}) }}
+                                {{ form_widget(form.customIdFormat, {'attr': {'class': 'form-control', 'placeholder': 'ASSET-{Y}-{000}'}}) }}
+                                {{ form_errors(form.customIdFormat) }}
                             </div>
                         </div>
 
@@ -45,15 +45,11 @@
                             {{ form_errors(form.description) }}
                         </div>
 
-                        {# --- Image URL --- #}
+                        {# --- Tags --- #}
                         <div class="mb-4">
-                            {{ form_label(form.imageUrl, null, {'label_attr': {'class': 'form-label fw-bold text-secondary'}}) }}
-                            <div class="input-group">
-                                <span class="input-group-text bg-light text-muted"><i class="bi bi-link-45deg"></i></span>
-                                {{ form_widget(form.imageUrl, {'attr': {'class': 'form-control', 'placeholder': 'https://example.com/image.jpg'}}) }}
-                            </div>
-                            <div class="form-text">Paste a direct link to an image for your cover.</div>
-                            {{ form_errors(form.imageUrl) }}
+                            {{ form_label(form.tags, null, {'label_attr': {'class': 'form-label fw-bold text-secondary'}}) }}
+                            {{ form_widget(form.tags, {'attr': {'class': 'form-control', 'data-placeholder': 'Select tags...'}}) }}
+                            {{ form_errors(form.tags) }}
                         </div>
 
                         <hr class="my-4 text-muted">

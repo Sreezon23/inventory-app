@@ -24,14 +24,25 @@ final class Version20260121182651 extends AbstractMigration
         $this->addSql('CREATE UNIQUE INDEX UNIQ_7BA2F5EB5F37A13B ON api_token (token)');
         $this->addSql('CREATE INDEX IDX_7BA2F5EB9EEA759 ON api_token (inventory_id)');
         $this->addSql('ALTER TABLE api_token ADD CONSTRAINT FK_7BA2F5EB9EEA759 FOREIGN KEY (inventory_id) REFERENCES inventory (id) NOT DEFERRABLE');
-        $this->addSql('ALTER TABLE inventory_api_token DROP CONSTRAINT fk_fc1e1c839eea759');
-        $this->addSql('ALTER TABLE inventory_api_token DROP CONSTRAINT fk_fc1e1c83b03a8386');
-        $this->addSql('ALTER TABLE salesforce_integration DROP CONSTRAINT fk_fa1f243ba76ed395');
-        $this->addSql('ALTER TABLE support_ticket DROP CONSTRAINT fk_1f5a4d5371ce806');
-        $this->addSql('ALTER TABLE support_ticket DROP CONSTRAINT fk_1f5a4d539eea759');
-        $this->addSql('DROP TABLE inventory_api_token');
-        $this->addSql('DROP TABLE salesforce_integration');
-        $this->addSql('DROP TABLE support_ticket');
+        
+        // Only drop these tables if they exist
+        if ($schema->hasTable('inventory_api_token')) {
+            $this->addSql('ALTER TABLE inventory_api_token DROP CONSTRAINT fk_fc1e1c839eea759');
+            $this->addSql('ALTER TABLE inventory_api_token DROP CONSTRAINT fk_fc1e1c83b03a8386');
+            $this->addSql('DROP TABLE inventory_api_token');
+        }
+        
+        if ($schema->hasTable('salesforce_integration')) {
+            $this->addSql('ALTER TABLE salesforce_integration DROP CONSTRAINT fk_fa1f243ba76ed395');
+            $this->addSql('DROP TABLE salesforce_integration');
+        }
+        
+        if ($schema->hasTable('support_ticket')) {
+            $this->addSql('ALTER TABLE support_ticket DROP CONSTRAINT fk_1f5a4d5371ce806');
+            $this->addSql('ALTER TABLE support_ticket DROP CONSTRAINT fk_1f5a4d539eea759');
+            $this->addSql('DROP TABLE support_ticket');
+        }
+        
         $this->addSql('ALTER TABLE inventory_discussion_post DROP CONSTRAINT fk_d5914059eea759');
         $this->addSql('ALTER TABLE inventory_discussion_post DROP CONSTRAINT fk_d591405f675f31b');
         $this->addSql('DROP INDEX idx_d591405f675f31b');
@@ -112,7 +123,7 @@ final class Version20260121182651 extends AbstractMigration
         $this->addSql('ALTER TABLE item_like DROP CONSTRAINT FK_64530448A76ED395');
         $this->addSql('DROP INDEX UNIQ_ITEM_USER_LIKE');
         $this->addSql('ALTER TABLE item_like ADD CONSTRAINT fk_64530448126f525e FOREIGN KEY (item_id) REFERENCES inventory_item (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
-        $this->addSql('ALTER TABLE item_like ADD CONSTRAINT fk_64530448a76ed395 FOREIGN KEY (user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
+        $this->addSql('ALTER TABLE item_like ADD CONSTRAINT fk_64530448a76ed395 FOREIGN KEY (user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATELY');
         $this->addSql('ALTER TABLE "user" ALTER password SET NOT NULL');
         $this->addSql('ALTER TABLE "user" ALTER language TYPE VARCHAR(10)');
         $this->addSql('ALTER TABLE "user" ALTER social_provider TYPE VARCHAR(50)');

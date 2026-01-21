@@ -30,6 +30,11 @@
                     <a href="{{ path('inventory_field_new', {'inventory_id': inventory.id}) }}" class="list-group-item list-group-item-action">
                         🛠 Configure Fields
                     </a>
+                    {% if is_granted('ROLE_USER') and inventory.creator.id == app.user.id %}
+                        <a href="{{ path('inventory_api_tokens', {'id': inventory.id}) }}" class="list-group-item list-group-item-action">
+                            🔑 API Tokens
+                        </a>
+                    {% endif %}
                 </div>
             </div>
 

@@ -18,3 +18,24 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    
+    App\Service\SalesforceService:
+        arguments:
+            $salesforceClientId: '%env(SALESFORCE_CLIENT_ID)%'
+            $salesforceClientSecret: '%env(SALESFORCE_CLIENT_SECRET)%'
+            $salesforceUsername: '%env(SALESFORCE_USERNAME)%'
+            $salesforcePassword: '%env(SALESFORCE_PASSWORD)%'
+            $salesforceSecurityToken: '%env(SALESFORCE_SECURITY_TOKEN)%'
+
+    App\Service\CloudStorageService:
+        arguments:
+            $cloudProvider: '%env(CLOUD_STORAGE_PROVIDER)%'
+            $cloudAccessToken: '%env(CLOUD_STORAGE_ACCESS_TOKEN)%'
+            $uploadPath: '%env(CLOUD_UPLOAD_PATH)%'
+
+    App\Service\OdooService:
+        arguments:
+            $odooUrl: '%env(ODOO_URL)%'
+            $odooDb: '%env(ODOO_DB)%'
+            $odooUsername: '%env(ODOO_USERNAME)%'
+            $odooPassword: '%env(ODOO_PASSWORD)%'

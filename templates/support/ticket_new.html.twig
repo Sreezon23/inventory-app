@@ -1,0 +1,114 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Support Ticket{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0">
+                        <i class="fas fa-life-ring"></i>
+                        Create Support Ticket
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Need Help?</strong><br>
+                        Our support team is here to assist you. Please provide as much detail as possible about your issue or question.
+                    </div>
+
+                    {% for message in app.flashes('success') %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle"></i> {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    {% for message in app.flashes('error') %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle"></i> {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    {% for message in app.flashes('info') %}
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="fas fa-info-circle"></i> {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    <div class="mb-3">
+                        <h5>Ticket Information</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Reported by:</strong> {{ user.name }} ({{ user.email }})<br>
+                                <strong>Date:</strong> {{ "now"|date('Y-m-d H:i') }}
+                            </div>
+                            <div class="col-md-6">
+                                {% if inventory_title %}
+                                    <strong>Related Inventory:</strong> {{ inventory_title }}<br>
+                                {% endif %}
+                                {% if page_url %}
+                                    <strong>Page:</strong> 
+                                    <a href="{{ page_url }}" target="_blank" class="text-truncate" style="max-width: 200px; display: inline-block;">
+                                        {{ page_url }}
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    {{ form_start(form) }}
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.summary) }}
+                        {{ form_widget(form.summary) }}
+                        {{ form_errors(form.summary) }}
+                        <small class="form-text text-muted">Brief summary of your issue or question</small>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.priority) }}
+                        {{ form_widget(form.priority) }}
+                        {{ form_errors(form.priority) }}
+                        <small class="form-text text-muted">
+                            <i class="fas fa-exclamation-triangle text-warning"></i> High priority issues will be addressed first
+                        </small>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.description) }}
+                        {{ form_widget(form.description) }}
+                        {{ form_errors(form.description) }}
+                        <small class="form-text text-muted">Please provide detailed information about your issue</small>
+                    </div>
+
+                    {{ form_rest(form) }}
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        {% if page_url %}
+                            <a href="{{ page_url }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Page
+                            </a>
+                        {% else %}
+                            <a href="{{ path('inventory_index') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Inventories
+                            </a>
+                        {% endif %}
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-paper-plane"></i> Submit Ticket
+                        </button>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Odoo Import{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-database"></i>
+                        Odoo Integration - Import Inventory Data
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Odoo ERP Integration</strong><br>
+                        Import aggregated inventory data from your inventories into Odoo for advanced reporting and analysis.
+                        You need an API token from your inventory to proceed with the import.
+                    </div>
+
+                    {% for message in app.flashes('success') %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle"></i> {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    {% for message in app.flashes('error') %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle"></i> {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    {% for message in app.flashes('info') %}
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="fas fa-info-circle"></i> {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-cogs"></i> How it works</h5>
+                                    <ol class="small">
+                                        <li>Go to your inventory and generate an API token</li>
+                                        <li>Copy the API token from the inventory settings</li>
+                                        <li>Paste the token in the form below</li>
+                                        <li>Click "Import to Odoo" to transfer the data</li>
+                                        <li>View the imported data in your Odoo instance</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5><i class="fas fa-chart-bar"></i> What gets imported</h5>
+                                    <ul class="small">
+                                        <li>Inventory metadata (title, description, category)</li>
+                                        <li>Field definitions and types</li>
+                                        <li>Aggregated data (min/max/average for numbers)</li>
+                                        <li>Most popular values for text fields</li>
+                                        <li>Statistical summaries for all fields</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        <div class="mb-3">
+                            <label for="api_token" class="form-label">
+                                <i class="fas fa-key"></i> API Token
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="api_token" 
+                                name="api_token" 
+                                rows="3" 
+                                placeholder="Paste your inventory API token here..."
+                                required
+                            ></textarea>
+                            <small class="form-text text-muted">
+                                You can generate API tokens from your inventory's API Tokens page.
+                            </small>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ path('inventory_index') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Inventories
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-download"></i> Import to Odoo
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr>
+
+                    <div class="text-center">
+                        <h6>Need API Token?</h6>
+                        <p class="text-muted">
+                            Navigate to any inventory you own and look for the "API Tokens" option in the actions menu.
+                        </p>
+                        <a href="{{ path('inventory_index') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-list"></i> View My Inventories
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

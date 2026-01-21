@@ -66,6 +66,9 @@ class Inventory
     #[ORM\JoinTable(name: 'inventory_has_tag')]
     private Collection $tags;
 
+    #[ORM\OneToMany(mappedBy: 'inventory', targetEntity: ApiToken::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $apiTokens;
+
     public function __construct()
     {
         $this->fields = new ArrayCollection();
@@ -73,6 +76,7 @@ class Inventory
         $this->accessList = new ArrayCollection();
         $this->discussionPosts = new ArrayCollection();
         $this->tags = new ArrayCollection();
+        $this->apiTokens = new ArrayCollection();
     }
 
     #[ORM\PrePersist]
@@ -197,4 +201,6 @@ class Inventory
         $this->tags->removeElement($tag);
         return $this;
     }
+
+    public function getApiTokens(): Collection { return $this->apiTokens; }
 }

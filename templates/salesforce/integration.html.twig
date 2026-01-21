@@ -1,0 +1,100 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Salesforce Integration{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-cloud"></i>
+                        Salesforce CRM Integration
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Customer Relationship Management</strong><br>
+                        Integrate your profile with our Salesforce CRM to receive better support, 
+                        marketing newsletters, and information about additional services.
+                    </div>
+
+                    {% for message in app.flashes('success') %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle"></i> {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    {% for message in app.flashes('error') %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle"></i> {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    {% for message in app.flashes('info') %}
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="fas fa-info-circle"></i> {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    <div class="mb-3">
+                        <h5>Current User Information</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Name:</strong> {{ user.name }}<br>
+                                <strong>Email:</strong> {{ user.email }}<br>
+                                <strong>Account Status:</strong> 
+                                {% if user.isAdmin %}
+                                    <span class="badge bg-danger">Administrator</span>
+                                {% else %}
+                                    <span class="badge bg-primary">User</span>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Member Since:</strong> {{ user.createdAt ? user.createdAt|date('Y-m-d') : 'N/A' }}<br>
+                                <strong>Language:</strong> {{ user.language|upper }}<br>
+                                <strong>Theme:</strong> {{ user.theme }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    {{ form_start(form) }}
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form_row(form.first_name) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(form.last_name) }}
+                        </div>
+                    </div>
+                    
+                    {{ form_row(form.email) }}
+                    {{ form_row(form.phone) }}
+                    {{ form_row(form.company_name) }}
+                    {{ form_row(form.job_title) }}
+                    {{ form_row(form.website) }}
+                    {{ form_row(form.industry) }}
+                    {{ form_row(form.description) }}
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ path('inventory_index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Inventories
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-cloud-upload-alt"></i> Create Salesforce Records
+                        </button>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

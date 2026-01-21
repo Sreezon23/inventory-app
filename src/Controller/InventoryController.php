@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Inventory;
+use App\Entity\ApiToken;
 use App\Form\InventoryType;
 use App\Repository\InventoryRepository;
+use App\Service\ApiTokenService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -123,6 +125,73 @@ class InventoryController extends AbstractController
         }
 
         return $this->redirectToRoute('inventory_index');
+    }
+
+    #[Route(
+        '/{id}/api-tokens',
+        name: 'inventory_api_tokens',
+        methods: ['GET'],
+        requirements: ['id' => '\d+']
+    )]
+    #[IsGranted('ROLE_USER')]
+    public function apiTokens(Inventory $inventory, ApiTokenService $apiTokenService): Response
+    {
+        if ($inventory->getCreator()->getId() !== $this->getUser()->getId()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $tokens = $apiTokenService->getTokensForInventory($inventory);
+
+        return $this->render('inventory/api_tokens.html.twig', [
+            'inventory' => $inventory,
+            'tokens' => $tokens,
+        ]);
+    }
+
+    #[Route(
+        '/{id}/api-tokens/create',
+        name: 'inventory_api_token_create',
+        methods: ['POST'],
+        requirements: ['id' => '\d+']
+    )]
+    #[IsGranted('ROLE_USER')]
+    public function createApiToken(Inventory $inventory, Request $request, ApiTokenService $apiTokenService): Response
+    {
+        if ($inventory->getCreator()->getId() !== $this->getUser()->getId()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if ($this->isCsrfTokenValid('create_token' . $inventory->getId(), $request->request->get('_token'))) {
+            $description = $request->request->get('description');
+            $token = $apiTokenService->createToken($inventory, $description);
+            $this->addFlash('success', 'API token created successfully: ' . $token->getToken());
+        }
+
+        return $this->redirectToRoute('inventory_api_tokens', ['id' => $inventory->getId()]);
+    }
+
+    #[Route(
+        '/{id}/api-tokens/{tokenId}/revoke',
+        name: 'inventory_api_token_revoke',
+        methods: ['POST'],
+        requirements: ['id' => '\d+', 'tokenId' => '\d+']
+    )]
+    #[IsGranted('ROLE_USER')]
+    public function revokeApiToken(Inventory $inventory, int $tokenId, Request $request, ApiTokenService $apiTokenService, EntityManagerInterface $em): Response
+    {
+        if ($inventory->getCreator()->getId() !== $this->getUser()->getId()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if ($this->isCsrfTokenValid('revoke_token' . $tokenId, $request->request->get('_token'))) {
+            $token = $em->find(ApiToken::class, $tokenId);
+            if ($token && $token->getInventory()->getId() === $inventory->getId()) {
+                $apiTokenService->revokeToken($token);
+                $this->addFlash('success', 'API token revoked successfully');
+            }
+        }
+
+        return $this->redirectToRoute('inventory_api_tokens', ['id' => $inventory->getId()]);
     }
 
     private function checkInventoryAccess(Inventory $inventory, string $type = 'read'): void

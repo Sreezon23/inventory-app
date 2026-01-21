@@ -1,0 +1,148 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}API Tokens - {{ inventory.title }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-key"></i>
+                        API Tokens for {{ inventory.title }}
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>API Access</strong><br>
+                        Generate API tokens to allow external applications to access aggregated inventory data.
+                        Each token provides read-only access to this specific inventory's aggregated results.
+                    </div>
+
+                    {% for message in app.flashes('success') %}
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle"></i> {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+
+                    <div class="mb-4">
+                        <h5>API Endpoint</h5>
+                        <div class="input-group">
+                            <span class="input-group-text" id="api-endpoint">{{ absolute_url(path('api_inventory_aggregated', {'token': 'YOUR_TOKEN_HERE'})) }}</span>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyApiEndpoint()">Copy</button>
+                        </div>
+                        <small class="form-text text-muted">Replace YOUR_TOKEN_HERE with an actual token from below.</small>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5>Create New Token</h5>
+                        <form method="post" action="{{ path('inventory_api_token_create', {'id': inventory.id}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('create_token' ~ inventory.id) }}">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <input type="text" name="description" class="form-control" placeholder="Description (optional)" maxlength="255">
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="submit" class="btn btn-success w-100">
+                                        <i class="fas fa-plus"></i> Generate Token
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>Existing Tokens</h5>
+                            {% if tokens|length > 0 %}
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Token</th>
+                                                <th>Description</th>
+                                                <th>Created</th>
+                                                <th>Expires</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for token in tokens %}
+                                                <tr>
+                                                    <td>
+                                                        <code class="text-truncate" style="max-width: 150px; display: inline-block;">{{ token.token }}</code>
+                                                        <button class="btn btn-sm btn-outline-secondary" onclick="copyToken('{{ token.token }}')" title="Copy token">
+                                                            <i class="fas fa-copy"></i>
+                                                        </button>
+                                                    </td>
+                                                    <td>{{ token.description ?: '-' }}</td>
+                                                    <td>{{ token.createdAt|date('Y-m-d H:i') }}</td>
+                                                    <td>{{ token.expiresAt|date('Y-m-d') }}</td>
+                                                    <td>
+                                                        {% if token.isActive() %}
+                                                            <span class="badge bg-success">Active</span>
+                                                        {% else %}
+                                                            <span class="badge bg-danger">Inactive</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if token.isActive() %}
+                                                            <form method="post" action="{{ path('inventory_api_token_revoke', {'id': inventory.id, 'tokenId': token.id}) }}" style="display: inline;">
+                                                                <input type="hidden" name="_token" value="{{ csrf_token('revoke_token' ~ token.id) }}">
+                                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to revoke this token?')">
+                                                                    <i class="fas fa-ban"></i> Revoke
+                                                                </button>
+                                                            </form>
+                                                        {% else %}
+                                                            <span class="text-muted">Revoked</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    No API tokens found. Generate a token to enable API access.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                        <a href="{{ path('inventory_show', {'id': inventory.id}) }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Inventory
+                        </a>
+                        <a href="{{ path('inventory_index') }}" class="btn btn-primary">
+                            <i class="fas fa-list"></i> All Inventories
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToken(token) {
+    navigator.clipboard.writeText(token).then(function() {
+        alert('Token copied to clipboard!');
+    });
+}
+
+function copyApiEndpoint() {
+    const endpoint = document.getElementById('api-endpoint').textContent;
+    navigator.clipboard.writeText(endpoint).then(function() {
+        alert('API endpoint copied to clipboard!');
+    });
+}
+</script>
+{% endblock %}

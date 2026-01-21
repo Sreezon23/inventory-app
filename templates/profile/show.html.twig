@@ -1,0 +1,166 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-user"></i>
+                        My Profile
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-4 text-center">
+                            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
+                                <i class="fas fa-user fa-3x text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <h4>{{ user.name }}</h4>
+                            <p class="text-muted">{{ user.email }}</p>
+                            <div class="mb-2">
+                                {% if user.isAdmin %}
+                                    <span class="badge bg-danger">Administrator</span>
+                                {% else %}
+                                    <span class="badge bg-primary">User</span>
+                                {% endif %}
+                                
+                                {% if user.isActive %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                                
+                                {% if user.isBlocked %}
+                                    <span class="badge bg-warning">Blocked</span>
+                                {% endif %}
+                            </div>
+                            <p><strong>Member Since:</strong> {{ user.createdAt ? user.createdAt|date('F j, Y') : 'N/A' }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Account Details</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Language:</strong></td>
+                                    <td>{{ user.language|upper }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Theme:</strong></td>
+                                    <td>{{ user.theme }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Social Provider:</strong></td>
+                                    <td>{{ user.socialProvider ?: 'Email' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Statistics</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Inventories:</strong></td>
+                                    <td>{{ user.inventories|length }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Access Permissions:</strong></td>
+                                    <td>{{ user.inventoryAccess|length }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Likes:</strong></td>
+                                    <td>{{ user.likes|length }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Theme Preference</h5>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary" onclick="setTheme('light')">
+                                    <i class="bi bi-sun"></i> Light
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="setTheme('dark')">
+                                    <i class="bi bi-moon"></i> Dark
+                                </button>
+                            </div>
+                            <small class="text-muted">Current theme: <strong>{{ user.theme|title }}</strong></small>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Quick Actions</h5>
+                            <div class="d-grid gap-2">
+                                <a href="{{ path('salesforce_integration') }}" class="btn btn-success">
+                                    <i class="fas fa-cloud"></i> Salesforce Integration
+                                </a>
+                                <a href="{{ path('support_ticket_new') }}" class="btn btn-warning">
+                                    <i class="fas fa-life-ring"></i> Support Ticket
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{{ path('inventory_index') }}" class="btn btn-primary">
+                            <i class="fas fa-list"></i> My Inventories
+                        </a>
+                        <a href="{{ path('app_logout') }}" class="btn btn-secondary">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function setTheme(theme) {
+    // Apply theme immediately
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    
+    // Save to server
+    fetch('/theme/switch', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: `theme=${theme}`
+    }).then(response => {
+        if (response.ok) {
+            // Show success message
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed';
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                <i class="fas fa-check-circle"></i> Theme switched to ${theme} mode
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            // Remove alert after 3 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 3000);
+        }
+    }).catch(error => {
+        console.error('Error switching theme:', error);
+    });
+}
+</script>
+{% endblock %}

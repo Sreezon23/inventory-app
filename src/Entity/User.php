@@ -138,4 +138,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setSocialProvider(?string $p): self { $this->socialProvider = $p; return $this; }
     public function getSocialId(): ?string { return $this->socialId; }
     public function setSocialId(?string $i): self { $this->socialId = $i; return $this; }
+
+    public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
+    public function getUpdatedAt(): ?\DateTimeImmutable { return $this->updatedAt; }
 }

@@ -1,4 +1,4 @@
-/* Dark Theme Variables */
+
 [data-theme="dark"] {
     --bs-primary: #0d6efd;
     --bs-secondary: #6c757d;
@@ -34,7 +34,6 @@
     --bs-modal-border-color: #4a5568;
 }
 
-/* Dark Theme Styles */
 [data-theme="dark"] body {
     background-color: var(--bs-body-bg);
     color: var(--bs-body-color);
@@ -187,7 +186,6 @@
     color: #9ca3af !important;
 }
 
-/* Theme toggle button animation */
 #theme-toggle:hover {
     transform: scale(1.1);
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
@@ -197,7 +195,6 @@
     transform: scale(0.95);
 }
 
-/* Smooth transitions */
 [data-theme="dark"] * {
     transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }

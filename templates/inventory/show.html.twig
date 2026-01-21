@@ -1,0 +1,87 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ inventory.title }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-0">{{ inventory.title }}</h1>
+            <span class="badge bg-secondary">{{ inventory.category }}</span>
+            {% if inventory.isPublic %}<span class="badge bg-success">Public</span>{% endif %}
+        </div>
+        <div>
+            <a href="{{ path('inventory_edit', {'id': inventory.id}) }}" class="btn btn-outline-primary">Settings</a>
+            <a href="{{ path('inventory_index') }}" class="btn btn-link">Back to List</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">Actions</div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ path('inventory_item_index', {'inventory_id': inventory.id}) }}" class="list-group-item list-group-item-action fw-bold text-primary">
+                        📦 View All Items
+                    </a>
+                    <a href="{{ path('inventory_item_new', {'inventory_id': inventory.id}) }}" class="list-group-item list-group-item-action">
+                        + Add New Item
+                    </a>
+                    <a href="{{ path('inventory_field_new', {'inventory_id': inventory.id}) }}" class="list-group-item list-group-item-action">
+                        🛠 Configure Fields
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Inventory Details</div>
+                <div class="card-body">
+                    <p class="text-muted">{{ inventory.description|default('No description provided.') }}</p>
+                    <hr>
+                    <small class="text-muted">Created: {{ inventory.createdAt|date('Y-m-d') }}</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Configured Fields</span>
+                    <a href="{{ path('inventory_field_new', {'inventory_id': inventory.id}) }}" class="btn btn-sm btn-primary">+ Add Field</a>
+                </div>
+                <div class="card-body">
+                    {% if inventory.fields is empty %}
+                        <div class="text-center py-4 text-muted">
+                            <p>You haven't defined any custom data fields yet.</p>
+                            <a href="{{ path('inventory_field_new', {'inventory_id': inventory.id}) }}" class="btn btn-outline-primary">
+                                Add your first field (e.g. "Serial Number")
+                            </a>
+                        </div>
+                    {% else %}
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Req?</th>
+                                    <th>Order</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for field in inventory.fields %}
+                                    <tr>
+                                        <td>{{ field.fieldName }}</td>
+                                        <td><span class="badge bg-light text-dark border">{{ field.fieldType }}</span></td>
+                                        <td>{{ field.isRequired ? 'Yes' : '-' }}</td>
+                                        <td>{{ field.fieldOrder }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ inventory.title }} - Items{% endblock %}
+
+{% block body %}
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2><a href="{{ path('inventory_show', {id: inventory.id}) }}">{{ inventory.title }}</a> - Items</h2>
+        </div>
+        <div class="col-md-6 text-end">
+            {% if app.user and app.user.id == inventory.creator.id %}
+                <a href="{{ path('inventory_item_new', {inventory_id: inventory.id}) }}" class="btn btn-primary">+ New Item</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if items is empty %}
+        <div class="alert alert-info">No items yet.</div>
+    {% else %}
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Custom ID</th>
+                    <th>Created By</th>
+                    <th>Date</th>
+                    <th>Likes</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td><strong>{{ item.customId }}</strong></td>
+                        <td>{{ item.createdBy.name }}</td>
+                        <td>{{ item.createdAt|date('M d, Y') }}</td>
+                        <td>{{ item.countLikes() }}</td>
+                        <td>
+                            <a href="{{ path('inventory_item_show', {inventory_id: inventory.id, id: item.id}) }}" class="btn btn-sm btn-outline-primary">View</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+{% endblock %}

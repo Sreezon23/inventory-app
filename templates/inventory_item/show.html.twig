@@ -1,0 +1,188 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ item.customId }} - {{ inventory.title }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-box me-2"></i>
+                        {{ item.customId }}
+                    </h4>
+                    <div class="btn-group">
+                        <a href="{{ path('inventory_item_edit', {'inventory_id': inventory.id, 'id': item.id}) }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <a href="{{ path('inventory_item_index', {'inventory_id': inventory.id}) }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left"></i> Back to Items
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Item Details</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Custom ID:</strong></td>
+                                    <td>{{ item.customId }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Created By:</strong></td>
+                                    <td>{{ item.createdBy ? item.createdBy.name : 'Unknown' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Created:</strong></td>
+                                    <td>{{ item.createdAt|date('Y-m-d H:i') }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Last Updated:</strong></td>
+                                    <td>{{ item.updatedAt|date('Y-m-d H:i') }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Actions</h6>
+                            <div class="d-grid gap-2">
+                                <form method="POST" action="{{ path('inventory_item_like', {'inventory_id': inventory.id, 'id': item.id}) }}?v={{ 'now'|date('U') }}" style="display: inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('inventory-item-like') }}">
+                                    <button type="submit" class="btn btn-outline-primary btn-sm" id="like-btn-{{ item.id }}">
+                                        <i class="bi bi-heart"></i> Like ({{ item.countLikes() }})
+                                    </button>
+                                </form>
+                                <a href="{{ path('inventory_item_edit', {'inventory_id': inventory.id, 'id': item.id}) }}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-pencil"></i> Edit Item
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h6>Custom Fields</h6>
+                    {% if fields|length > 0 %}
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Field Name</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for field in fields %}
+                                    <tr>
+                                        <td><strong>{{ field.fieldName }}</strong></td>
+                                        <td>
+                                            {% set value = item.getValueByField(field) %}
+                                            {% if value is null %}
+                                                <span class="text-muted">Not set</span>
+                                            {% elseif field.fieldType == 'boolean' %}
+                                                {% if value %}<i class="bi bi-check-circle text-success"></i> Yes{% else %}<i class="bi bi-x-circle text-danger"></i> No{% endif %}
+                                            {% elseif field.fieldType == 'number' %}
+                                                {{ value }}
+                                            {% elseif field.fieldType starts with 'text' %}
+                                                {{ value|nl2br }}
+                                            {% else %}
+                                                {{ value }}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> No custom fields have been configured for this inventory.
+                            <a href="{{ path('inventory_field_new', {'inventory_id': inventory.id}) }}">Add fields</a> to customize item data.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Inventory Information</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Inventory:</strong> <a href="{{ path('inventory_show', {'id': inventory.id}) }}">{{ inventory.title }}</a></p>
+                    <p><strong>Category:</strong> {{ inventory.category }}</p>
+                    {% if inventory.description %}
+                        <p><strong>Description:</strong><br>{{ inventory.description|nl2br }}</p>
+                    {% endif %}
+                    <hr>
+                    <a href="{{ path('inventory_item_new', {'inventory_id': inventory.id}) }}" class="btn btn-success btn-sm w-100">
+                        <i class="bi bi-plus-circle"></i> Add New Item
+                    </a>
+                </div>
+            </div>
+
+            {% if item.likes|length > 0 %}
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">Likes ({{ item.countLikes() }})</h6>
+                    </div>
+                    <div class="card-body">
+                        {% for like in item.likes|slice(0, 5) %}
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-person-circle me-2"></i>
+                                <span>{{ like.user.name }}</span>
+                                <small class="text-muted ms-auto">{{ like.createdAt|date('M d, Y') }}</small>
+                            </div>
+                        {% endfor %}
+                        {% if item.countLikes() > 5 %}
+                            <small class="text-muted">and {{ item.countLikes() - 5 }} more...</small>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const likeForms = document.querySelectorAll('form[action*="/like"]');
+    
+    likeForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Processing...';
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    alert('Error: ' + (data.error || 'Unknown error occurred'));
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                alert('Network error: ' + error.message);
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

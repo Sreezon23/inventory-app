@@ -1,0 +1,50 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\InventoryField;
+use App\Form\InventoryFieldType;
+use App\Repository\InventoryRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+
+#[Route('/inventory/{inventory_id<\d+>}/field')]
+class InventoryFieldController extends AbstractController
+{
+    #[Route('/new', name: 'inventory_field_new', methods: ['GET', 'POST'])]
+    public function new(
+        Request $request, 
+        int $inventory_id, 
+        InventoryRepository $inventoryRepository, 
+        EntityManagerInterface $entityManager
+    ): Response
+    {
+        $inventory = $inventoryRepository->find($inventory_id);
+
+        if (!$inventory) {
+            throw $this->createNotFoundException('Inventory not found');
+        }
+
+        $field = new InventoryField();
+        $field->setInventory($inventory);
+
+        $form = $this->createForm(InventoryFieldType::class, $field);
+        $form->handleRequest($request);
+
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($field);
+            $entityManager->flush();
+
+            return $this->redirectToRoute('inventory_show', ['id' => $inventory->getId()]);
+        }
+
+        return $this->render('inventory_field/new.html.twig', [
+            'inventory' => $inventory,
+            'form' => $form->createView(),
+        ]);
+    }
+}

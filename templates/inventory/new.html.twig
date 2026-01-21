@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Inventory{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                
+                <div class="card border-0 shadow-lg rounded-3">
+                    <div class="card-header bg-primary text-white p-4 rounded-top-3">
+                        <h3 class="mb-0 fw-bold"><i class="bi bi-box-seam me-2"></i>Create New Inventory</h3>
+                        <p class="mb-0 opacity-75 small">Fill in the details below to start tracking your items.</p>
+                    </div>
+
+                    <div class="card-body p-5">
+                        {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
+
+                        {# --- Title Section --- #}
+                        <div class="mb-4">
+                            {{ form_label(form.title, null, {'label_attr': {'class': 'form-label fw-bold text-secondary'}}) }}
+                            {{ form_widget(form.title, {'attr': {'class': 'form-control form-control-lg', 'placeholder': 'e.g. My Retro Game Collection'}}) }}
+                            <div class="form-text">{{ form_help(form.title) }}</div>
+                            {{ form_errors(form.title) }}
+                        </div>
+
+                        {# --- 2 Column Grid for Category & Image URL --- #}
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                {{ form_label(form.category, null, {'label_attr': {'class': 'form-label fw-bold text-secondary'}}) }}
+                                {{ form_widget(form.category, {'attr': {'class': 'form-select'}}) }}
+                                {{ form_errors(form.category) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_label(form.imageUrl, null, {'label_attr': {'class': 'form-label fw-bold text-secondary'}}) }}
+                                {{ form_widget(form.imageUrl, {'attr': {'class': 'form-control', 'placeholder': 'https://example.com/image.jpg'}}) }}
+                                {{ form_errors(form.imageUrl) }}
+                            </div>
+                        </div>
+
+                        {# --- Description (Floating Label Style) --- #}
+                        <div class="form-floating mb-4">
+                            {{ form_widget(form.description, {'attr': {'class': 'form-control', 'style': 'height: 120px', 'placeholder': 'Describe your inventory'}}) }}
+                            {{ form_label(form.description, 'Description (Optional)') }}
+                            {{ form_errors(form.description) }}
+                        </div>
+
+                        {# --- Tags --- #}
+                        <div class="mb-4">
+                            {{ form_label(form.tags, null, {'label_attr': {'class': 'form-label fw-bold text-secondary'}}) }}
+                            {{ form_widget(form.tags, {'attr': {'class': 'form-control', 'data-placeholder': 'Select tags...'}}) }}
+                            {{ form_errors(form.tags) }}
+                        </div>
+
+                        <hr class="my-4 text-muted">
+
+                        {# --- Public Toggle Switch --- #}
+                        <div class="form-check form-switch mb-4 p-3 bg-light rounded border d-flex align-items-center justify-content-between">
+                            <div>
+                                {{ form_label(form.isPublic, 'Make this Public?', {'label_attr': {'class': 'form-check-label fw-bold mb-0 cursor-pointer'}}) }}
+                                <div class="small text-muted">Public inventories can be seen by other users.</div>
+                            </div>
+                            {{ form_widget(form.isPublic, {'attr': {'class': 'form-check-input fs-4', 'style': 'margin-left: 1rem;'}}) }}
+                        </div>
+
+                        {# --- Action Buttons --- #}
+                        <div class="d-flex justify-content-end gap-2 mt-5">
+                            <a href="{{ path('inventory_index') }}" class="btn btn-light btn-lg px-4 border">Cancel</a>
+                            <button class="btn btn-primary btn-lg px-4 fw-bold shadow-sm" type="submit">
+                                <i class="bi bi-check-lg me-1"></i> Create Inventory
+                            </button>
+                        </div>
+
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

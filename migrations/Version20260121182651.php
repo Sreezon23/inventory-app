@@ -43,9 +43,19 @@ final class Version20260121182651 extends AbstractMigration
             $this->addSql('DROP TABLE support_ticket');
         }
         
-        $this->addSql('ALTER TABLE inventory_discussion_post DROP CONSTRAINT fk_d5914059eea759');
-        $this->addSql('ALTER TABLE inventory_discussion_post DROP CONSTRAINT fk_d591405f675f31b');
-        $this->addSql('DROP INDEX idx_d591405f675f31b');
+        // Safe constraint drops - check if constraint exists
+        $table = $schema->getTable('inventory_discussion_post');
+        if ($table->hasForeignKey('fk_d5914059eea759')) {
+            $this->addSql('ALTER TABLE inventory_discussion_post DROP CONSTRAINT fk_d5914059eea759');
+        }
+        if ($table->hasForeignKey('fk_d591405f675f31b')) {
+            $this->addSql('ALTER TABLE inventory_discussion_post DROP CONSTRAINT fk_d591405f675f31b');
+        }
+        
+        if ($table->hasIndex('idx_d591405f675f31b')) {
+            $this->addSql('DROP INDEX idx_d591405f675f31b');
+        }
+        
         $this->addSql('ALTER TABLE inventory_discussion_post RENAME COLUMN author_id TO user_id');
         $this->addSql('ALTER TABLE inventory_discussion_post ADD CONSTRAINT FK_D5914059EEA759 FOREIGN KEY (inventory_id) REFERENCES inventory (id) ON DELETE CASCADE NOT DEFERRABLE');
         $this->addSql('ALTER TABLE inventory_discussion_post ADD CONSTRAINT FK_D591405A76ED395 FOREIGN KEY (user_id) REFERENCES "user" (id) NOT DEFERRABLE');
@@ -55,8 +65,15 @@ final class Version20260121182651 extends AbstractMigration
         $this->addSql('ALTER TABLE inventory_field ALTER storage_slot TYPE VARCHAR(20)');
         $this->addSql('CREATE UNIQUE INDEX unique_field_name_inv ON inventory_field (inventory_id, field_name)');
         $this->addSql('CREATE UNIQUE INDEX unique_storage_slot_inv ON inventory_field (inventory_id, storage_slot)');
-        $this->addSql('ALTER TABLE inventory_item DROP CONSTRAINT fk_55bdea309eea759');
-        $this->addSql('ALTER TABLE inventory_item DROP CONSTRAINT fk_55bdea30b03a8386');
+        
+        $itemTable = $schema->getTable('inventory_item');
+        if ($itemTable->hasForeignKey('fk_55bdea309eea759')) {
+            $this->addSql('ALTER TABLE inventory_item DROP CONSTRAINT fk_55bdea309eea759');
+        }
+        if ($itemTable->hasForeignKey('fk_55bdea30b03a8386')) {
+            $this->addSql('ALTER TABLE inventory_item DROP CONSTRAINT fk_55bdea30b03a8386');
+        }
+        
         $this->addSql('ALTER TABLE inventory_item ALTER custom_id TYPE VARCHAR(64)');
         $this->addSql('ALTER TABLE inventory_item ALTER custom_id SET NOT NULL');
         $this->addSql('ALTER TABLE inventory_item ALTER link1 TYPE VARCHAR(1024)');
@@ -66,8 +83,15 @@ final class Version20260121182651 extends AbstractMigration
         $this->addSql('ALTER TABLE inventory_item ADD CONSTRAINT FK_55BDEA30B03A8386 FOREIGN KEY (created_by_id) REFERENCES "user" (id) ON DELETE SET NULL NOT DEFERRABLE');
         $this->addSql('CREATE UNIQUE INDEX uniq_item_custom_id ON inventory_item (inventory_id, custom_id)');
         $this->addSql('ALTER INDEX idx_55bdea309eea759 RENAME TO idx_item_inventory');
-        $this->addSql('ALTER TABLE item_like DROP CONSTRAINT fk_64530448126f525e');
-        $this->addSql('ALTER TABLE item_like DROP CONSTRAINT fk_64530448a76ed395');
+        
+        $likeTable = $schema->getTable('item_like');
+        if ($likeTable->hasForeignKey('fk_64530448126f525e')) {
+            $this->addSql('ALTER TABLE item_like DROP CONSTRAINT fk_64530448126f525e');
+        }
+        if ($likeTable->hasForeignKey('fk_64530448a76ed395')) {
+            $this->addSql('ALTER TABLE item_like DROP CONSTRAINT fk_64530448a76ed395');
+        }
+        
         $this->addSql('ALTER TABLE item_like ADD CONSTRAINT FK_64530448126F525E FOREIGN KEY (item_id) REFERENCES inventory_item (id) ON DELETE CASCADE NOT DEFERRABLE');
         $this->addSql('ALTER TABLE item_like ADD CONSTRAINT FK_64530448A76ED395 FOREIGN KEY (user_id) REFERENCES "user" (id) ON DELETE CASCADE NOT DEFERRABLE');
         $this->addSql('CREATE UNIQUE INDEX UNIQ_ITEM_USER_LIKE ON item_like (item_id, user_id)');
@@ -123,7 +147,7 @@ final class Version20260121182651 extends AbstractMigration
         $this->addSql('ALTER TABLE item_like DROP CONSTRAINT FK_64530448A76ED395');
         $this->addSql('DROP INDEX UNIQ_ITEM_USER_LIKE');
         $this->addSql('ALTER TABLE item_like ADD CONSTRAINT fk_64530448126f525e FOREIGN KEY (item_id) REFERENCES inventory_item (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
-        $this->addSql('ALTER TABLE item_like ADD CONSTRAINT fk_64530448a76ed395 FOREIGN KEY (user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATELY');
+        $this->addSql('ALTER TABLE item_like ADD CONSTRAINT fk_64530448a76ed395 FOREIGN KEY (user_id) REFERENCES "user" (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE "user" ALTER password SET NOT NULL');
         $this->addSql('ALTER TABLE "user" ALTER language TYPE VARCHAR(10)');
         $this->addSql('ALTER TABLE "user" ALTER social_provider TYPE VARCHAR(50)');

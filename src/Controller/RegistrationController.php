@@ -29,6 +29,13 @@ class RegistrationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Check if email already exists
+            $existingUser = $em->getRepository(User::class)->findOneBy(['email' => $form->get('email')->getData()]);
+            
+            if ($existingUser) {
+                $this->addFlash('error', 'Email address is already registered. Please use a different email or try logging in.');
+                return $this->redirectToRoute('app_register');
+            }
             
             $user->setPassword(
                 $passwordHasher->hashPassword(
@@ -40,7 +47,6 @@ class RegistrationController extends AbstractController
             $em->persist($user);
             $em->flush();
 
-            
             $this->addFlash('success', 'Account created! Please login.');
             return $this->redirectToRoute('app_login');
         }

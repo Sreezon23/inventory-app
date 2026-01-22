@@ -134,13 +134,16 @@ class InventoryController extends AbstractController
         requirements: ['id' => '\d+']
     )]
     #[IsGranted('ROLE_USER')]
-    public function apiTokens(Inventory $inventory, ApiTokenService $apiTokenService): Response
+    public function apiTokens(Inventory $inventory, EntityManagerInterface $em): Response
     {
-        if ($inventory->getCreator()->getId() !== $this->getUser()->getId()) {
+        // Check if user is the creator or if inventory has no creator (for demo purposes)
+        if ($inventory->getCreator() && $inventory->getCreator()->getId() !== $this->getUser()->getId()) {
             throw $this->createAccessDeniedException();
         }
 
-        $tokens = $apiTokenService->getTokensForInventory($inventory);
+        // Use repository directly to avoid service dependency issues
+        $repository = $em->getRepository(ApiToken::class);
+        $tokens = $repository->findBy(['inventory' => $inventory, 'isActive' => true], ['createdAt' => 'DESC']);
 
         return $this->render('inventory/api_tokens.html.twig', [
             'inventory' => $inventory,
@@ -155,15 +158,24 @@ class InventoryController extends AbstractController
         requirements: ['id' => '\d+']
     )]
     #[IsGranted('ROLE_USER')]
-    public function createApiToken(Inventory $inventory, Request $request, ApiTokenService $apiTokenService): Response
+    public function createApiToken(Inventory $inventory, Request $request, EntityManagerInterface $em): Response
     {
-        if ($inventory->getCreator()->getId() !== $this->getUser()->getId()) {
+        // Check if user is the creator or if inventory has no creator (for demo purposes)
+        if ($inventory->getCreator() && $inventory->getCreator()->getId() !== $this->getUser()->getId()) {
             throw $this->createAccessDeniedException();
         }
 
         if ($this->isCsrfTokenValid('create_token' . $inventory->getId(), $request->request->get('_token'))) {
             $description = $request->request->get('description');
-            $token = $apiTokenService->createToken($inventory, $description);
+            
+            // Create token directly without service
+            $token = new ApiToken();
+            $token->setInventory($inventory);
+            $token->setDescription($description);
+            
+            $em->persist($token);
+            $em->flush();
+            
             $this->addFlash('success', 'API token created successfully: ' . $token->getToken());
         }
 
@@ -177,16 +189,19 @@ class InventoryController extends AbstractController
         requirements: ['id' => '\d+', 'tokenId' => '\d+']
     )]
     #[IsGranted('ROLE_USER')]
-    public function revokeApiToken(Inventory $inventory, int $tokenId, Request $request, ApiTokenService $apiTokenService, EntityManagerInterface $em): Response
+    public function revokeApiToken(Inventory $inventory, int $tokenId, Request $request, EntityManagerInterface $em): Response
     {
-        if ($inventory->getCreator()->getId() !== $this->getUser()->getId()) {
+        // Check if user is the creator or if inventory has no creator (for demo purposes)
+        if ($inventory->getCreator() && $inventory->getCreator()->getId() !== $this->getUser()->getId()) {
             throw $this->createAccessDeniedException();
         }
 
         if ($this->isCsrfTokenValid('revoke_token' . $tokenId, $request->request->get('_token'))) {
             $token = $em->find(ApiToken::class, $tokenId);
             if ($token && $token->getInventory()->getId() === $inventory->getId()) {
-                $apiTokenService->revokeToken($token);
+                // Revoke token directly without service
+                $token->setIsActive(false);
+                $em->flush();
                 $this->addFlash('success', 'API token revoked successfully');
             }
         }
